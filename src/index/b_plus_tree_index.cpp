@@ -1,4 +1,3 @@
-#include <algorithm>
 #include "index/b_plus_tree_index.h"
 
 #include "index/generic_key.h"
@@ -9,7 +8,7 @@ BPlusTreeIndex::BPlusTreeIndex(index_id_t index_id, IndexSchema *key_schema, siz
       processor_(key_schema_, key_size),
       container_(index_id, buffer_pool_manager, processor_) {}
 
-dberr_t BPlusTreeIndex::InsertEntry(const Row &key, RowId row_id, Transaction *txn) {
+dberr_t BPlusTreeIndex::InsertEntry(const Row &key, RowId row_id, Txn *txn) {
   // ASSERT(row_id.Get() != INVALID_ROWID.Get(), "Invalid row id for index insert.");
   GenericKey *index_key = processor_.InitKey();
   processor_.SerializeFromKey(index_key, key, key_schema_);
@@ -27,7 +26,7 @@ dberr_t BPlusTreeIndex::InsertEntry(const Row &key, RowId row_id, Transaction *t
   return DB_SUCCESS;
 }
 
-dberr_t BPlusTreeIndex::RemoveEntry(const Row &key, RowId row_id, Transaction *txn) {
+dberr_t BPlusTreeIndex::RemoveEntry(const Row &key, RowId row_id, Txn *txn) {
   GenericKey *index_key = processor_.InitKey();
   processor_.SerializeFromKey(index_key, key, key_schema_);
 
@@ -36,15 +35,14 @@ dberr_t BPlusTreeIndex::RemoveEntry(const Row &key, RowId row_id, Transaction *t
   return DB_SUCCESS;
 }
 
-dberr_t BPlusTreeIndex::ScanKey(const Row &key, vector<RowId> &result, Transaction *txn, string compare_operator) {
+dberr_t BPlusTreeIndex::ScanKey(const Row &key, vector<RowId> &result, Txn *txn, string compare_operator) {
   GenericKey *index_key = processor_.InitKey();
   processor_.SerializeFromKey(index_key, key, key_schema_);
   if (compare_operator == "=") {
     container_.GetValue(index_key, result, txn);
   } else if (compare_operator == ">") {
     auto iter = GetBeginIterator(index_key);
-    if (container_.GetValue(index_key, result, txn))
-      ++iter;
+    if (container_.GetValue(index_key, result, txn)) ++iter;
     result.clear();
     for (; iter != GetEndIterator(); ++iter) {
       result.emplace_back((*iter).second);

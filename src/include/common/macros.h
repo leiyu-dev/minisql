@@ -37,5 +37,6 @@
 
 #define ALLOC(Heap, Type) new (Heap.Allocate(sizeof(Type))) Type
 #define ALLOC_P(Heap, Type) new (Heap->Allocate(sizeof(Type))) Type
+#define ALLOC_COLUMN(Heap) ALLOC(Heap, Column)
 
 #endif  // MINISQL_MACROS_H

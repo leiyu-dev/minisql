@@ -41,9 +41,9 @@ typedef enum {
   kNodeCreateIndex,          /** create index command */
   kNodeDropIndex,            /** drop index command */
   kNodeIndexType,            /** type of index */
-  kNodeTrxBegin,             /** begin transaction command */
-  kNodeTrxCommit,            /** commit transaction command */
-  kNodeTrxRollback           /** rollback transaction command */
+  kNodeTrxBegin,             /** begin recovery command */
+  kNodeTrxCommit,            /** commit recovery command */
+  kNodeTrxRollback           /** rollback recovery command */
 } SyntaxNodeType;
 
 /**

@@ -19,7 +19,7 @@ TEST(BPlusTreeTests, SampleTest) {
   BPlusTree tree(0, engine.bpm_, KP);
   TreeFileManagers mgr("tree_");
   // Prepare data
-  const int n = 30;
+  const int n = 2000;
   vector<GenericKey *> keys;
   vector<RowId> values;
   vector<GenericKey *> delete_seq;
@@ -47,7 +47,7 @@ TEST(BPlusTreeTests, SampleTest) {
   }
   ASSERT_TRUE(tree.Check());
   // Print tree
-  tree.PrintTree(mgr[0]);
+  tree.PrintTree(mgr[0], table_schema);
   // Search keys
   vector<RowId> ans;
   for (int i = 0; i < n; i++) {
@@ -59,7 +59,7 @@ TEST(BPlusTreeTests, SampleTest) {
   for (int i = 0; i < n / 2; i++) {
     tree.Remove(delete_seq[i]);
   }
-  tree.PrintTree(mgr[1]);
+  tree.PrintTree(mgr[1], table_schema);
   // Check valid
   ans.clear();
   for (int i = 0; i < n / 2; i++) {

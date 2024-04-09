@@ -4,8 +4,8 @@
 #include <memory>
 
 #include "common/dberr.h"
+#include "concurrency/txn.h"
 #include "record/row.h"
-#include "transaction/transaction.h"
 
 class Index {
  public:
@@ -13,12 +13,11 @@ class Index {
 
   virtual ~Index() {}
 
-  virtual dberr_t InsertEntry(const Row &key, RowId row_id, Transaction *txn) = 0;
+  virtual dberr_t InsertEntry(const Row &key, RowId row_id, Txn *txn) = 0;
 
-  virtual dberr_t RemoveEntry(const Row &key, RowId row_id, Transaction *txn) = 0;
+  virtual dberr_t RemoveEntry(const Row &key, RowId row_id, Txn *txn) = 0;
 
-  virtual dberr_t ScanKey(const Row &key, std::vector<RowId> &result, Transaction *txn,
-                          string compare_operator = "=") = 0;
+  virtual dberr_t ScanKey(const Row &key, std::vector<RowId> &result, Txn *txn, string compare_operator = "=") = 0;
 
   virtual dberr_t Destroy() = 0;
 

@@ -5,11 +5,11 @@
 #include <string>
 #include <vector>
 
+#include "concurrency/txn.h"
 #include "index/index_iterator.h"
 #include "page/b_plus_tree_internal_page.h"
 #include "page/b_plus_tree_leaf_page.h"
 #include "page/b_plus_tree_page.h"
-#include "transaction/transaction.h"
 
 /**
  * Main class providing the API for the Interactive B+ Tree.
@@ -33,13 +33,13 @@ class BPlusTree {
   bool IsEmpty() const;
 
   // Insert a key-value pair into this B+ tree.
-  bool Insert(GenericKey *key, const RowId &value, Transaction *transaction = nullptr);
+  bool Insert(GenericKey *key, const RowId &value, Txn *transaction = nullptr);
 
   // Remove a key and its value from this B+ tree.
-  void Remove(const GenericKey *key, Transaction *transaction = nullptr);
+  void Remove(const GenericKey *key, Txn *transaction = nullptr);
 
   // return the value associated with a given key
-  bool GetValue(const GenericKey *key, std::vector<RowId> &result, Transaction *transaction = nullptr);
+  bool GetValue(const GenericKey *key, std::vector<RowId> &result, Txn *transaction = nullptr);
 
   IndexIterator Begin();
 
@@ -56,37 +56,36 @@ class BPlusTree {
   // destroy the b plus tree
   void Destroy(page_id_t current_page_id = INVALID_PAGE_ID);
 
-  void PrintTree(std::ofstream &out) {
+  void PrintTree(std::ofstream &out, Schema *schema) {
     if (IsEmpty()) {
       return;
     }
     out << "digraph G {" << std::endl;
     Page *root_page = buffer_pool_manager_->FetchPage(root_page_id_);
-    auto *node = reinterpret_cast<BPlusTreePage *>(root_page);
-    ToGraph(node, buffer_pool_manager_, out);
+    auto *node = reinterpret_cast<BPlusTreePage *>(root_page->GetData());
+    ToGraph(node, buffer_pool_manager_, out, schema);
     out << "}" << std::endl;
   }
 
  private:
   void StartNewTree(GenericKey *key, const RowId &value);
 
-  bool InsertIntoLeaf(GenericKey *key, const RowId &value, Transaction *transaction = nullptr);
+  bool InsertIntoLeaf(GenericKey *key, const RowId &value, Txn *transaction = nullptr);
 
-  void InsertIntoParent(BPlusTreePage *old_node, GenericKey *key, BPlusTreePage *new_node,
-                        Transaction *transaction = nullptr);
+  void InsertIntoParent(BPlusTreePage *old_node, GenericKey *key, BPlusTreePage *new_node, Txn *transaction = nullptr);
 
-  LeafPage *Split(LeafPage *node, Transaction *transaction);
+  LeafPage *Split(LeafPage *node, Txn *transaction);
 
-  InternalPage *Split(InternalPage *node, Transaction *transaction);
+  InternalPage *Split(InternalPage *node, Txn *transaction);
 
   template <typename N>
-  bool CoalesceOrRedistribute(N *&node, Transaction *transaction = nullptr);
+  bool CoalesceOrRedistribute(N *&node, Txn *transaction = nullptr);
 
   bool Coalesce(InternalPage *&neighbor_node, InternalPage *&node, InternalPage *&parent, int index,
-                Transaction *transaction = nullptr);
+                Txn *transaction = nullptr);
 
   bool Coalesce(LeafPage *&neighbor_node, LeafPage *&node, InternalPage *&parent, int index,
-                Transaction *transaction = nullptr);
+                Txn *transaction = nullptr);
 
   void Redistribute(LeafPage *neighbor_node, LeafPage *node, int index);
 
@@ -97,7 +96,7 @@ class BPlusTree {
   void UpdateRootPageId(int insert_record = 0);
 
   /* Debug Routines for FREE!! */
-  void ToGraph(BPlusTreePage *page, BufferPoolManager *bpm, std::ofstream &out) const;
+  void ToGraph(BPlusTreePage *page, BufferPoolManager *bpm, std::ofstream &out, Schema *schema) const;
 
   void ToString(BPlusTreePage *page, BufferPoolManager *bpm) const;
 

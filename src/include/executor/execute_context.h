@@ -8,25 +8,25 @@
 #include "buffer/buffer_pool_manager.h"
 #include "catalog/catalog.h"
 #include "common/macros.h"
-#include "transaction/transaction.h"
+#include "concurrency/txn.h"
 
 class ExecuteContext {
  public:
   /**
-   * Creates an ExecuteContext for the transaction that is executing the query.
-   * @param transaction The transaction executing the query
+   * Creates an ExecuteContext for the recovery that is executing the query.
+   * @param transaction The recovery executing the query
    * @param catalog The catalog that the executor uses
    * @param bpm The buffer pool manager that the executor uses
    */
-  ExecuteContext(Transaction *transaction, CatalogManager *catalog, BufferPoolManager *bpm)
+  ExecuteContext(Txn *transaction, CatalogManager *catalog, BufferPoolManager *bpm)
       : transaction_(transaction), catalog_{catalog}, bpm_{bpm} {}
 
   ~ExecuteContext() = default;
 
   DISALLOW_COPY_AND_MOVE(ExecuteContext);
 
-  /** @return the running transaction */
-  Transaction *GetTransaction() const { return transaction_; }
+  /** @return the running recovery */
+  Txn *GetTransaction() const { return transaction_; }
 
   /** @return the catalog */
   CatalogManager *GetCatalog() { return catalog_; }
@@ -35,8 +35,8 @@ class ExecuteContext {
   BufferPoolManager *GetBufferPoolManager() { return bpm_; }
 
  private:
-  /** The transaction context associated with this executor context */
-  Transaction *transaction_;
+  /** The recovery context associated with this executor context */
+  Txn *transaction_;
   /** The datbase catalog associated with this executor context */
   CatalogManager *catalog_;
   /** The buffer pool manager associated with this executor context */

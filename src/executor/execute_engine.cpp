@@ -20,7 +20,7 @@
 ExecuteEngine::ExecuteEngine() {
   char path[] = "./databases";
   DIR *dir;
-  if((dir = opendir(path)) == nullptr) {
+  if ((dir = opendir(path)) == nullptr) {
     mkdir("./databases", 0777);
     dir = opendir(path);
   }
@@ -75,7 +75,7 @@ std::unique_ptr<AbstractExecutor> ExecuteEngine::CreateExecutor(ExecuteContext *
   }
 }
 
-dberr_t ExecuteEngine::ExecutePlan(const AbstractPlanNodeRef &plan, std::vector<Row> *result_set, Transaction *txn,
+dberr_t ExecuteEngine::ExecutePlan(const AbstractPlanNodeRef &plan, std::vector<Row> *result_set, Txn *txn,
                                    ExecuteContext *exec_ctx) {
   // Construct the executor for the abstract plan node
   auto executor = CreateExecutor(exec_ctx, plan);
@@ -105,8 +105,7 @@ dberr_t ExecuteEngine::Execute(pSyntaxNode ast) {
   }
   auto start_time = std::chrono::system_clock::now();
   unique_ptr<ExecuteContext> context(nullptr);
-  if(!current_db_.empty())
-    context = dbs_[current_db_]->MakeExecuteContext(nullptr);
+  if (!current_db_.empty()) context = dbs_[current_db_]->MakeExecuteContext(nullptr);
   switch (ast->type_) {
     case kNodeCreateDB:
       return ExecuteCreateDatabase(ast, context.get());
@@ -335,7 +334,6 @@ dberr_t ExecuteEngine::ExecuteDropIndex(pSyntaxNode ast, ExecuteContext *context
 #endif
   return DB_FAILED;
 }
-
 
 dberr_t ExecuteEngine::ExecuteTrxBegin(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG

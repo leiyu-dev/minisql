@@ -21,15 +21,15 @@
 
 #include "common/macros.h"
 #include "common/rowid.h"
+#include "concurrency/lock_manager.h"
+#include "concurrency/txn.h"
 #include "page/page.h"
 #include "record/row.h"
-#include "transaction/lock_manager.h"
-#include "transaction/log_manager.h"
-#include "transaction/transaction.h"
+#include "recovery/log_manager.h"
 
 class TablePage : public Page {
  public:
-  void Init(page_id_t page_id, page_id_t prev_id, LogManager *log_mgr, Transaction *txn);
+  void Init(page_id_t page_id, page_id_t prev_id, LogManager *log_mgr, Txn *txn);
 
   page_id_t GetTablePageId() { return *reinterpret_cast<page_id_t *>(GetData()); }
 
@@ -45,18 +45,18 @@ class TablePage : public Page {
     memcpy(GetData() + OFFSET_NEXT_PAGE_ID, &next_page_id, sizeof(page_id_t));
   }
 
-  bool InsertTuple(Row &row, Schema *schema, Transaction *txn, LockManager *lock_manager, LogManager *log_manager);
+  bool InsertTuple(Row &row, Schema *schema, Txn *txn, LockManager *lock_manager, LogManager *log_manager);
 
-  bool MarkDelete(const RowId &rid, Transaction *txn, LockManager *lock_manager, LogManager *log_manager);
+  bool MarkDelete(const RowId &rid, Txn *txn, LockManager *lock_manager, LogManager *log_manager);
 
-  bool UpdateTuple(const Row &new_row, Row *old_row, Schema *schema, Transaction *txn, LockManager *lock_manager,
+  bool UpdateTuple(const Row &new_row, Row *old_row, Schema *schema, Txn *txn, LockManager *lock_manager,
                    LogManager *log_manager);
 
-  void ApplyDelete(const RowId &rid, Transaction *txn, LogManager *log_manager);
+  void ApplyDelete(const RowId &rid, Txn *txn, LogManager *log_manager);
 
-  void RollbackDelete(const RowId &rid, Transaction *txn, LogManager *log_manager);
+  void RollbackDelete(const RowId &rid, Txn *txn, LogManager *log_manager);
 
-  bool GetTuple(Row *row, Schema *schema, Transaction *txn, LockManager *lock_manager);
+  bool GetTuple(Row *row, Schema *schema, Txn *txn, LockManager *lock_manager);
 
   bool GetFirstTupleRid(RowId *first_rid);
 

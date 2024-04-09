@@ -49,7 +49,7 @@ TEST(CatalogTest, CatalogTableTest) {
                                    new Column("name", TypeId::kTypeChar, 64, 1, true, false),
                                    new Column("account", TypeId::kTypeFloat, 2, true, false)};
   auto schema = std::make_shared<Schema>(columns);
-  Transaction txn;
+  Txn txn;
   catalog_01->CreateTable("table-1", schema.get(), &txn, table_info);
   ASSERT_TRUE(table_info != nullptr);
   TableInfo *table_info_02 = nullptr;
@@ -77,7 +77,7 @@ TEST(CatalogTest, CatalogIndexTest) {
                                    new Column("name", TypeId::kTypeChar, 64, 1, true, false),
                                    new Column("account", TypeId::kTypeFloat, 2, true, false)};
   auto schema = std::make_shared<Schema>(columns);
-  Transaction txn;
+  Txn txn;
   catalog_01->CreateTable("table-1", schema.get(), &txn, table_info);
   ASSERT_TRUE(table_info != nullptr);
 

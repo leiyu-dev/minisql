@@ -73,8 +73,8 @@ class ExecutorTest : public ::testing::Test {
   /** @return The execution engine for our test instance. */
   ExecuteEngine *GetExecutionEngine() { return execution_engine_.get(); }
 
-  /** @return Get the transaction for our test instance. */
-  Transaction *GetTxn() { return txn_; }
+  /** @return Get the recovery for our test instance. */
+  Txn *GetTxn() { return txn_; }
 
   /**
    * Make a column value expression.
@@ -170,8 +170,8 @@ class ExecutorTest : public ::testing::Test {
   }
 
  private:
-  /** The transaction context for the test */
-  Transaction *txn_{nullptr};
+  /** The recovery context for the test */
+  Txn *txn_{nullptr};
 
   DBStorageEngine *db_test_;
   /** The executor context for the test */

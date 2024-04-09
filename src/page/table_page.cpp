@@ -1,6 +1,8 @@
 #include "page/table_page.h"
 
-void TablePage::Init(page_id_t page_id, page_id_t prev_id, LogManager *log_mgr, Transaction *txn) {
+// TODO: Update interface implementation if apply recovery
+
+void TablePage::Init(page_id_t page_id, page_id_t prev_id, LogManager *log_mgr, Txn *txn) {
   memcpy(GetData(), &page_id, sizeof(page_id));
   SetPrevPageId(prev_id);
   SetNextPageId(INVALID_PAGE_ID);
@@ -8,8 +10,7 @@ void TablePage::Init(page_id_t page_id, page_id_t prev_id, LogManager *log_mgr, 
   SetTupleCount(0);
 }
 
-bool TablePage::InsertTuple(Row &row, Schema *schema, Transaction *txn, LockManager *lock_manager,
-                            LogManager *log_manager) {
+bool TablePage::InsertTuple(Row &row, Schema *schema, Txn *txn, LockManager *lock_manager, LogManager *log_manager) {
   uint32_t serialized_size = row.GetSerializedSize(schema);
   ASSERT(serialized_size > 0, "Can not have empty row.");
   if (GetFreeSpaceRemaining() < serialized_size + SIZE_TUPLE) {
@@ -43,7 +44,7 @@ bool TablePage::InsertTuple(Row &row, Schema *schema, Transaction *txn, LockMana
   return true;
 }
 
-bool TablePage::MarkDelete(const RowId &rid, Transaction *txn, LockManager *lock_manager, LogManager *log_manager) {
+bool TablePage::MarkDelete(const RowId &rid, Txn *txn, LockManager *lock_manager, LogManager *log_manager) {
   uint32_t slot_num = rid.GetSlotNum();
   // If the slot number is invalid, abort.
   if (slot_num >= GetTupleCount()) {
@@ -61,8 +62,8 @@ bool TablePage::MarkDelete(const RowId &rid, Transaction *txn, LockManager *lock
   return true;
 }
 
-bool TablePage::UpdateTuple(const Row &new_row, Row *old_row, Schema *schema, Transaction *txn,
-                            LockManager *lock_manager, LogManager *log_manager) {
+bool TablePage::UpdateTuple(const Row &new_row, Row *old_row, Schema *schema, Txn *txn, LockManager *lock_manager,
+                            LogManager *log_manager) {
   ASSERT(old_row != nullptr && old_row->GetRowId().Get() != INVALID_ROWID.Get(), "invalid old row.");
   uint32_t serialized_size = new_row.GetSerializedSize(schema);
   ASSERT(serialized_size > 0, "Can not have empty row.");
@@ -102,7 +103,7 @@ bool TablePage::UpdateTuple(const Row &new_row, Row *old_row, Schema *schema, Tr
   return true;
 }
 
-void TablePage::ApplyDelete(const RowId &rid, Transaction *txn, LogManager *log_manager) {
+void TablePage::ApplyDelete(const RowId &rid, Txn *txn, LogManager *log_manager) {
   uint32_t slot_num = rid.GetSlotNum();
   ASSERT(slot_num < GetTupleCount(), "Cannot have more slots than tuples.");
 
@@ -131,7 +132,7 @@ void TablePage::ApplyDelete(const RowId &rid, Transaction *txn, LogManager *log_
   }
 }
 
-void TablePage::RollbackDelete(const RowId &rid, Transaction *txn, LogManager *log_manager) {
+void TablePage::RollbackDelete(const RowId &rid, Txn *txn, LogManager *log_manager) {
   uint32_t slot_num = rid.GetSlotNum();
   ASSERT(slot_num < GetTupleCount(), "We can't have more slots than tuples.");
   uint32_t tuple_size = GetTupleSize(slot_num);
@@ -142,17 +143,17 @@ void TablePage::RollbackDelete(const RowId &rid, Transaction *txn, LogManager *l
   }
 }
 
-bool TablePage::GetTuple(Row *row, Schema *schema, Transaction *txn, LockManager *lock_manager) {
+bool TablePage::GetTuple(Row *row, Schema *schema, Txn *txn, LockManager *lock_manager) {
   ASSERT(row != nullptr && row->GetRowId().Get() != INVALID_ROWID.Get(), "Invalid row.");
   // Get the current slot number.
   uint32_t slot_num = row->GetRowId().GetSlotNum();
-  // If somehow we have more slots than tuples, abort the transaction.
+  // If somehow we have more slots than tuples, abort the recovery.
   if (slot_num >= GetTupleCount()) {
     return false;
   }
   // Otherwise get the current tuple size too.
   uint32_t tuple_size = GetTupleSize(slot_num);
-  // If the tuple is deleted, abort the transaction.
+  // If the tuple is deleted, abort the recovery.
   if (IsDeleted(tuple_size)) {
     return false;
   }

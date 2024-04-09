@@ -37,9 +37,7 @@ bool BPlusTree::IsEmpty() const {
  * This method is used for point query
  * @return : true means key exists
  */
-bool BPlusTree::GetValue(const GenericKey *key, std::vector<RowId> &result, Transaction *transaction) {
-  return false;
-}
+bool BPlusTree::GetValue(const GenericKey *key, std::vector<RowId> &result, Txn *transaction) { return false; }
 
 /*****************************************************************************
  * INSERTION
@@ -51,17 +49,14 @@ bool BPlusTree::GetValue(const GenericKey *key, std::vector<RowId> &result, Tran
  * @return: since we only support unique key, if user try to insert duplicate
  * keys return false, otherwise return true.
  */
-bool BPlusTree::Insert(GenericKey *key, const RowId &value, Transaction *transaction) {
-  return false;
-}
+bool BPlusTree::Insert(GenericKey *key, const RowId &value, Txn *transaction) { return false; }
 /*
  * Insert constant key & value pair into an empty tree
  * User needs to first ask for new page from buffer pool manager(NOTICE: throw
  * an "out of memory" exception if returned value is nullptr), then update b+
  * tree's root page id and insert entry directly into leaf page.
  */
-void BPlusTree::StartNewTree(GenericKey *key, const RowId &value) {
-}
+void BPlusTree::StartNewTree(GenericKey *key, const RowId &value) {}
 
 /*
  * Insert constant key & value pair into leaf page
@@ -71,9 +66,7 @@ void BPlusTree::StartNewTree(GenericKey *key, const RowId &value) {
  * @return: since we only support unique key, if user try to insert duplicate
  * keys return false, otherwise return true.
  */
-bool BPlusTree::InsertIntoLeaf(GenericKey *key, const RowId &value, Transaction *transaction) {
-  return false;
-}
+bool BPlusTree::InsertIntoLeaf(GenericKey *key, const RowId &value, Txn *transaction) { return false; }
 
 /*
  * Split input page and return newly created page.
@@ -82,13 +75,9 @@ bool BPlusTree::InsertIntoLeaf(GenericKey *key, const RowId &value, Transaction 
  * an "out of memory" exception if returned value is nullptr), then move half
  * of key & value pairs from input page to newly created page
  */
-BPlusTreeInternalPage *BPlusTree::Split(InternalPage *node, Transaction *transaction) {
-  return nullptr;
-}
+BPlusTreeInternalPage *BPlusTree::Split(InternalPage *node, Txn *transaction) { return nullptr; }
 
-BPlusTreeLeafPage *BPlusTree::Split(LeafPage *node, Transaction *transaction) {
-  return nullptr;
-}
+BPlusTreeLeafPage *BPlusTree::Split(LeafPage *node, Txn *transaction) { return nullptr; }
 
 /*
  * Insert key & value pair into internal page after split
@@ -99,9 +88,7 @@ BPlusTreeLeafPage *BPlusTree::Split(LeafPage *node, Transaction *transaction) {
  * adjusted to take info of new_node into account. Remember to deal with split
  * recursively if necessary.
  */
-void BPlusTree::InsertIntoParent(BPlusTreePage *old_node, GenericKey *key, BPlusTreePage *new_node,
-                                 Transaction *transaction) {
-}
+void BPlusTree::InsertIntoParent(BPlusTreePage *old_node, GenericKey *key, BPlusTreePage *new_node, Txn *transaction) {}
 
 /*****************************************************************************
  * REMOVE
@@ -113,8 +100,7 @@ void BPlusTree::InsertIntoParent(BPlusTreePage *old_node, GenericKey *key, BPlus
  * delete entry from leaf page. Remember to deal with redistribute or merge if
  * necessary.
  */
-void BPlusTree::Remove(const GenericKey *key, Transaction *transaction) {
-}
+void BPlusTree::Remove(const GenericKey *key, Txn *transaction) {}
 
 /* todo
  * User needs to first find the sibling of input page. If sibling's size + input
@@ -124,7 +110,7 @@ void BPlusTree::Remove(const GenericKey *key, Transaction *transaction) {
  * deletion happens
  */
 template <typename N>
-bool BPlusTree::CoalesceOrRedistribute(N *&node, Transaction *transaction) {
+bool BPlusTree::CoalesceOrRedistribute(N *&node, Txn *transaction) {
   return false;
 }
 
@@ -140,12 +126,12 @@ bool BPlusTree::CoalesceOrRedistribute(N *&node, Transaction *transaction) {
  * @return  true means parent node should be deleted, false means no deletion happened
  */
 bool BPlusTree::Coalesce(LeafPage *&neighbor_node, LeafPage *&node, InternalPage *&parent, int index,
-                         Transaction *transaction) {
+                         Txn *transaction) {
   return false;
 }
 
 bool BPlusTree::Coalesce(InternalPage *&neighbor_node, InternalPage *&node, InternalPage *&parent, int index,
-                         Transaction *transaction) {
+                         Txn *transaction) {
   return false;
 }
 
@@ -189,7 +175,7 @@ IndexIterator BPlusTree::Begin() {
 }
 
 /*
- * Input parameter is low-key, find the leaf page that contains the input key
+ * Input parameter is low key, find the leaf page that contains the input key
  * first, then construct index iterator
  * @return : index iterator
  */
@@ -232,7 +218,7 @@ void BPlusTree::UpdateRootPageId(int insert_record) {
 /**
  * This method is used for debug only, You don't need to modify
  */
-void BPlusTree::ToGraph(BPlusTreePage *page, BufferPoolManager *bpm, std::ofstream &out) const {
+void BPlusTree::ToGraph(BPlusTreePage *page, BufferPoolManager *bpm, std::ofstream &out, Schema *schema) const {
   std::string leaf_prefix("LEAF_");
   std::string internal_prefix("INT_");
   if (page->IsLeafPage()) {
@@ -251,7 +237,9 @@ void BPlusTree::ToGraph(BPlusTreePage *page, BufferPoolManager *bpm, std::ofstre
         << "</TD></TR>\n";
     out << "<TR>";
     for (int i = 0; i < leaf->GetSize(); i++) {
-      out << "<TD>" << leaf->KeyAt(i) << "</TD>\n";
+      Row ans;
+      processor_.DeserializeToKey(leaf->KeyAt(i), ans, schema);
+      out << "<TD>" << ans.GetField(0)->toString() << "</TD>\n";
     }
     out << "</TR>";
     // Print table end
@@ -285,7 +273,9 @@ void BPlusTree::ToGraph(BPlusTreePage *page, BufferPoolManager *bpm, std::ofstre
     for (int i = 0; i < inner->GetSize(); i++) {
       out << "<TD PORT=\"p" << inner->ValueAt(i) << "\">";
       if (i > 0) {
-        out << inner->KeyAt(i);
+        Row ans;
+        processor_.DeserializeToKey(inner->KeyAt(i), ans, schema);
+        out << ans.GetField(0)->toString();
       } else {
         out << " ";
       }
@@ -302,7 +292,7 @@ void BPlusTree::ToGraph(BPlusTreePage *page, BufferPoolManager *bpm, std::ofstre
     // Print leaves
     for (int i = 0; i < inner->GetSize(); i++) {
       auto child_page = reinterpret_cast<BPlusTreePage *>(bpm->FetchPage(inner->ValueAt(i))->GetData());
-      ToGraph(child_page, bpm, out);
+      ToGraph(child_page, bpm, out, schema);
       if (i > 0) {
         auto sibling_page = reinterpret_cast<BPlusTreePage *>(bpm->FetchPage(inner->ValueAt(i - 1))->GetData());
         if (!sibling_page->IsLeafPage() && !child_page->IsLeafPage()) {

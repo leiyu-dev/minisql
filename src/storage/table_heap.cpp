@@ -3,14 +3,12 @@
 /**
  * TODO: Student Implement
  */
-bool TableHeap::InsertTuple(Row &row, Transaction *txn) {
-  return false;
-}
+bool TableHeap::InsertTuple(Row &row, Txn *txn) { return false; }
 
-bool TableHeap::MarkDelete(const RowId &rid, Transaction *txn) {
+bool TableHeap::MarkDelete(const RowId &rid, Txn *txn) {
   // Find the page which contains the tuple.
   auto page = reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(rid.GetPageId()));
-  // If the page could not be found, then abort the transaction.
+  // If the page could not be found, then abort the recovery.
   if (page == nullptr) {
     return false;
   }
@@ -25,20 +23,17 @@ bool TableHeap::MarkDelete(const RowId &rid, Transaction *txn) {
 /**
  * TODO: Student Implement
  */
-bool TableHeap::UpdateTuple(const Row &row, const RowId &rid, Transaction *txn) {
-  return false;
-}
+bool TableHeap::UpdateTuple(const Row &row, const RowId &rid, Txn *txn) { return false; }
 
 /**
  * TODO: Student Implement
  */
-void TableHeap::ApplyDelete(const RowId &rid, Transaction *txn) {
+void TableHeap::ApplyDelete(const RowId &rid, Txn *txn) {
   // Step1: Find the page which contains the tuple.
   // Step2: Delete the tuple from the page.
-
 }
 
-void TableHeap::RollbackDelete(const RowId &rid, Transaction *txn) {
+void TableHeap::RollbackDelete(const RowId &rid, Txn *txn) {
   // Find the page which contains the tuple.
   auto page = reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(rid.GetPageId()));
   assert(page != nullptr);
@@ -52,9 +47,7 @@ void TableHeap::RollbackDelete(const RowId &rid, Transaction *txn) {
 /**
  * TODO: Student Implement
  */
-bool TableHeap::GetTuple(Row *row, Transaction *txn) {
-  return false;
-}
+bool TableHeap::GetTuple(Row *row, Txn *txn) { return false; }
 
 void TableHeap::DeleteTable(page_id_t page_id) {
   if (page_id != INVALID_PAGE_ID) {
@@ -71,9 +64,7 @@ void TableHeap::DeleteTable(page_id_t page_id) {
 /**
  * TODO: Student Implement
  */
-TableIterator TableHeap::Begin(Transaction *txn) {
-  return TableIterator();
-}
+TableIterator TableHeap::Begin(Txn *txn) { return TableIterator(); }
 
 /**
  * TODO: Student Implement

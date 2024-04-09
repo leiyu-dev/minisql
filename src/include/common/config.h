@@ -5,8 +5,8 @@
 #include <cstring>
 
 static constexpr int INVALID_PAGE_ID = -1;   // invalid page id
-static constexpr int INVALID_FRAME_ID = -1;  // invalid transaction id
-static constexpr int INVALID_TXN_ID = -1;    // invalid transaction id
+static constexpr int INVALID_FRAME_ID = -1;  // invalid recovery id
+static constexpr int INVALID_TXN_ID = -1;    // invalid recovery id
 static constexpr int INVALID_LSN = -1;       // invalid log sequence number
 
 static constexpr int META_PAGE_ID = 0;          // physical page id of the disk file meta info

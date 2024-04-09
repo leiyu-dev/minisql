@@ -10,9 +10,9 @@
 #include "catalog/table.h"
 #include "common/config.h"
 #include "common/dberr.h"
-#include "transaction/lock_manager.h"
-#include "transaction/log_manager.h"
-#include "transaction/transaction.h"
+#include "concurrency/lock_manager.h"
+#include "concurrency/txn.h"
+#include "recovery/log_manager.h"
 
 class CatalogMeta {
   friend class CatalogManager;
@@ -76,14 +76,14 @@ class CatalogManager {
 
   ~CatalogManager();
 
-  dberr_t CreateTable(const std::string &table_name, TableSchema *schema, Transaction *txn, TableInfo *&table_info);
+  dberr_t CreateTable(const std::string &table_name, TableSchema *schema, Txn *txn, TableInfo *&table_info);
 
   dberr_t GetTable(const std::string &table_name, TableInfo *&table_info);
 
   dberr_t GetTables(std::vector<TableInfo *> &tables) const;
 
   dberr_t CreateIndex(const std::string &table_name, const std::string &index_name,
-                      const std::vector<std::string> &index_keys, Transaction *txn, IndexInfo *&index_info,
+                      const std::vector<std::string> &index_keys, Txn *txn, IndexInfo *&index_info,
                       const string &index_type);
 
   dberr_t GetIndex(const std::string &table_name, const std::string &index_name, IndexInfo *&index_info) const;

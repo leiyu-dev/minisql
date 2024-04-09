@@ -1,5 +1,7 @@
-#include <stdio.h>
 #include "parser/parser.h"
+
+#include <stdio.h>
+
 #include "parser/syntax_tree.h"
 
 pSyntaxNode minisql_parser_root_node_ = NULL;

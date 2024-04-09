@@ -1,54 +1,54 @@
 #include "catalog/catalog.h"
 
 void CatalogMeta::SerializeTo(char *buf) const {
-    ASSERT(GetSerializedSize() <= PAGE_SIZE, "Failed to serialize catalog metadata to disk.");
-    MACH_WRITE_UINT32(buf, CATALOG_METADATA_MAGIC_NUM);
+  ASSERT(GetSerializedSize() <= PAGE_SIZE, "Failed to serialize catalog metadata to disk.");
+  MACH_WRITE_UINT32(buf, CATALOG_METADATA_MAGIC_NUM);
+  buf += 4;
+  MACH_WRITE_UINT32(buf, table_meta_pages_.size());
+  buf += 4;
+  MACH_WRITE_UINT32(buf, index_meta_pages_.size());
+  buf += 4;
+  for (auto iter : table_meta_pages_) {
+    MACH_WRITE_TO(table_id_t, buf, iter.first);
     buf += 4;
-    MACH_WRITE_UINT32(buf, table_meta_pages_.size());
+    MACH_WRITE_TO(page_id_t, buf, iter.second);
     buf += 4;
-    MACH_WRITE_UINT32(buf, index_meta_pages_.size());
+  }
+  for (auto iter : index_meta_pages_) {
+    MACH_WRITE_TO(index_id_t, buf, iter.first);
     buf += 4;
-    for (auto iter : table_meta_pages_) {
-        MACH_WRITE_TO(table_id_t, buf, iter.first);
-        buf += 4;
-        MACH_WRITE_TO(page_id_t, buf, iter.second);
-        buf += 4;
-    }
-    for (auto iter : index_meta_pages_) {
-        MACH_WRITE_TO(index_id_t, buf, iter.first);
-        buf += 4;
-        MACH_WRITE_TO(page_id_t, buf, iter.second);
-        buf += 4;
-    }
+    MACH_WRITE_TO(page_id_t, buf, iter.second);
+    buf += 4;
+  }
 }
 
 CatalogMeta *CatalogMeta::DeserializeFrom(char *buf) {
-    // check valid
-    uint32_t magic_num = MACH_READ_UINT32(buf);
+  // check valid
+  uint32_t magic_num = MACH_READ_UINT32(buf);
+  buf += 4;
+  ASSERT(magic_num == CATALOG_METADATA_MAGIC_NUM, "Failed to deserialize catalog metadata from disk.");
+  // get table and index nums
+  uint32_t table_nums = MACH_READ_UINT32(buf);
+  buf += 4;
+  uint32_t index_nums = MACH_READ_UINT32(buf);
+  buf += 4;
+  // create metadata and read value
+  CatalogMeta *meta = new CatalogMeta();
+  for (uint32_t i = 0; i < table_nums; i++) {
+    auto table_id = MACH_READ_FROM(table_id_t, buf);
     buf += 4;
-    ASSERT(magic_num == CATALOG_METADATA_MAGIC_NUM, "Failed to deserialize catalog metadata from disk.");
-    // get table and index nums
-    uint32_t table_nums = MACH_READ_UINT32(buf);
+    auto table_heap_page_id = MACH_READ_FROM(page_id_t, buf);
     buf += 4;
-    uint32_t index_nums = MACH_READ_UINT32(buf);
+    meta->table_meta_pages_.emplace(table_id, table_heap_page_id);
+  }
+  for (uint32_t i = 0; i < index_nums; i++) {
+    auto index_id = MACH_READ_FROM(index_id_t, buf);
     buf += 4;
-    // create metadata and read value
-    CatalogMeta *meta = new CatalogMeta();
-    for (uint32_t i = 0; i < table_nums; i++) {
-        auto table_id = MACH_READ_FROM(table_id_t, buf);
-        buf += 4;
-        auto table_heap_page_id = MACH_READ_FROM(page_id_t, buf);
-        buf += 4;
-        meta->table_meta_pages_.emplace(table_id, table_heap_page_id);
-    }
-    for (uint32_t i = 0; i < index_nums; i++) {
-        auto index_id = MACH_READ_FROM(index_id_t, buf);
-        buf += 4;
-        auto index_page_id = MACH_READ_FROM(page_id_t, buf);
-        buf += 4;
-        meta->index_meta_pages_.emplace(index_id, index_page_id);
-    }
-    return meta;
+    auto index_page_id = MACH_READ_FROM(page_id_t, buf);
+    buf += 4;
+    meta->index_meta_pages_.emplace(index_id, index_page_id);
+  }
+  return meta;
 }
 
 /**
@@ -71,8 +71,6 @@ CatalogManager::CatalogManager(BufferPoolManager *buffer_pool_manager, LockManag
 }
 
 CatalogManager::~CatalogManager() {
- /** After you finish the code for the CatalogManager section,
- *  you can uncomment the commented code. Otherwise it will affect b+tree test
   FlushCatalogMetaPage();
   delete catalog_meta_;
   for (auto iter : tables_) {
@@ -81,7 +79,6 @@ CatalogManager::~CatalogManager() {
   for (auto iter : indexes_) {
     delete iter.second;
   }
-  **/
 }
 
 /**
@@ -113,8 +110,8 @@ dberr_t CatalogManager::GetTables(vector<TableInfo *> &tables) const {
  * TODO: Student Implement
  */
 dberr_t CatalogManager::CreateIndex(const std::string &table_name, const string &index_name,
-                                    const std::vector<std::string> &index_keys, Transaction *txn,
-                                    IndexInfo *&index_info, const string &index_type) {
+                                    const std::vector<std::string> &index_keys, Txn *txn, IndexInfo *&index_info,
+                                    const string &index_type) {
   // ASSERT(false, "Not Implemented yet");
   return DB_FAILED;
 }

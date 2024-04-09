@@ -76,15 +76,11 @@ void *LeafPage::PairPtrAt(int index) {
 void LeafPage::PairCopy(void *dest, void *src, int pair_num) {
   memcpy(dest, src, pair_num * (GetKeySize() + sizeof(RowId)));
 }
-
 /*
  * Helper method to find and return the key & value pair associated with input
  * "index"(a.k.a. array offset)
  */
-std::pair<GenericKey *, RowId> LeafPage::GetItem(int index) {
-    // replace with your own code
-    return make_pair(nullptr, RowId());
-}
+std::pair<GenericKey *, RowId> LeafPage::GetItem(int index) { return {KeyAt(index), ValueAt(index)}; }
 
 /*****************************************************************************
  * INSERTION

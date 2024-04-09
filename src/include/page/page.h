@@ -14,7 +14,7 @@
  * pin count, dirty flag, page id, etc.
  */
 class Page {
-  // There is bookkeeping information inside the page that should only be relevant to the buffer pool manager.
+  // There is book-keeping information inside the page that should only be relevant to the buffer pool manager.
   friend class BufferPoolManager;
 
  public:

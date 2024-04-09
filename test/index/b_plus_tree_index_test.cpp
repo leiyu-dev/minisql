@@ -9,7 +9,6 @@
 static const std::string db_name = "bp_tree_index_test.db";
 
 TEST(BPlusTreeTests, BPlusTreeIndexGenericKeyTest) {
-  DBStorageEngine engine(db_name);
   std::vector<Column *> columns = {new Column("id", TypeId::kTypeInt, 0, false, false),
                                    new Column("name", TypeId::kTypeChar, 64, 1, true, false),
                                    new Column("account", TypeId::kTypeFloat, 2, true, false)};
@@ -29,17 +28,26 @@ TEST(BPlusTreeTests, BPlusTreeIndexGenericKeyTest) {
 }
 
 TEST(BPlusTreeTests, BPlusTreeIndexSimpleTest) {
-  //  using INDEX_KEY_TYPE = GenericKey<32>;
-  //  using INDEX_COMPARATOR_TYPE = GenericComparator<32>;
-  //  using BP_TREE_INDEX = BPlusTreeIndex<INDEX_KEY_TYPE, RowId, INDEX_COMPARATOR_TYPE>;
-  DBStorageEngine engine(db_name);
+  auto disk_mgr_ = new DiskManager(db_name);
+  auto bpm_ = new BufferPoolManager(DEFAULT_BUFFER_POOL_SIZE, disk_mgr_);
+  page_id_t id;
+  if (bpm_->IsPageFree(CATALOG_META_PAGE_ID)) {
+    if (bpm_->NewPage(id) == nullptr || id != CATALOG_META_PAGE_ID) {
+      throw logic_error("Failed to allocate catalog meta page.");
+    }
+  }
+  if (bpm_->IsPageFree(INDEX_ROOTS_PAGE_ID)) {
+    if (bpm_->NewPage(id) == nullptr || id != INDEX_ROOTS_PAGE_ID) {
+      throw logic_error("Failed to allocate header page.");
+    }
+  }
   std::vector<Column *> columns = {new Column("id", TypeId::kTypeInt, 0, false, false),
                                    new Column("name", TypeId::kTypeChar, 64, 1, true, false),
                                    new Column("account", TypeId::kTypeFloat, 2, true, false)};
   std::vector<uint32_t> index_key_map{0, 1};
   const TableSchema table_schema(columns);
   auto *index_schema = Schema::ShallowCopySchema(&table_schema, index_key_map);
-  auto *index = new BPlusTreeIndex(0, index_schema, 256, engine.bpm_);
+  auto *index = new BPlusTreeIndex(0, index_schema, 256, bpm_);
   for (int i = 0; i < 10; i++) {
     std::vector<Field> fields{Field(TypeId::kTypeInt, i),
                               Field(TypeId::kTypeChar, const_cast<char *>("minisql"), 7, true)};

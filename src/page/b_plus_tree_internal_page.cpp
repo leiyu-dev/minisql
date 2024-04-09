@@ -130,7 +130,7 @@ page_id_t InternalPage::RemoveAndReturnOnlyChild() {
  * MERGE
  *****************************************************************************/
 /*
- * Remove all key & value pairs from this page to "recipient" page.
+ * Remove all of key & value pairs from this page to "recipient" page.
  * The middle_key is the separation key you should get from the parent. You need
  * to make sure the middle key is added to the recipient to maintain the invariant.
  * You also need to use BufferPoolManager to persist changes to the parent page id for those

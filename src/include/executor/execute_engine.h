@@ -7,11 +7,11 @@
 
 #include "common/dberr.h"
 #include "common/instance.h"
+#include "concurrency/txn.h"
 #include "executor/execute_context.h"
 #include "executor/executors/abstract_executor.h"
 #include "executor/plans/abstract_plan.h"
 #include "record/row.h"
-#include "transaction/transaction.h"
 
 extern "C" {
 #include "parser/parser.h"
@@ -35,7 +35,7 @@ class ExecuteEngine {
    */
   dberr_t Execute(pSyntaxNode ast);
 
-  dberr_t ExecutePlan(const AbstractPlanNodeRef &plan, std::vector<Row> *result_set, Transaction *txn,
+  dberr_t ExecutePlan(const AbstractPlanNodeRef &plan, std::vector<Row> *result_set, Txn *txn,
                       ExecuteContext *exec_ctx);
 
   void ExecuteInformation(dberr_t result);

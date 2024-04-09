@@ -2,8 +2,8 @@
 #define MINISQL_TABLE_ITERATOR_H
 
 #include "common/rowid.h"
+#include "concurrency/txn.h"
 #include "record/row.h"
-#include "transaction/transaction.h"
 
 class TableHeap;
 

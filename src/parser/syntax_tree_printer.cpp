@@ -1,11 +1,11 @@
 //
 // Created by Chengjun Ying on 2022/4/5.
 //
+#include "parser/syntax_tree_printer.h"
+
 #include <fstream>
 #include <iostream>
 #include <string>
-
-#include "parser/syntax_tree_printer.h"
 
 void SyntaxTreePrinter::PrintTree(std::ofstream &out) {
   if (root_ == nullptr) {
@@ -29,13 +29,16 @@ void SyntaxTreePrinter::PrintTreeLow(pSyntaxNode node, std::ofstream &out) {
 
   if (node->child_ != nullptr) {
     PrintTreeLow(node->child_, out);
-    out << "SYNTAX_NODE_" << node->id_ << "  ->  " << "SYNTAX_NODE_" << node->child_->id_ << ";" << std::endl;
+    out << "SYNTAX_NODE_" << node->id_ << "  ->  "
+        << "SYNTAX_NODE_" << node->child_->id_ << ";" << std::endl;
   }
 
   if (node->next_ != nullptr) {
     PrintTreeLow(node->next_, out);
-    out << "SYNTAX_NODE_" << node->id_ << "  ->  " << "SYNTAX_NODE_" << node->next_->id_ << ";" << std::endl;
-    out << "{rank=same; " << "SYNTAX_NODE_" << node->id_ << "," << "SYNTAX_NODE_" << node->next_->id_ << "};" << std::endl;
+    out << "SYNTAX_NODE_" << node->id_ << "  ->  "
+        << "SYNTAX_NODE_" << node->next_->id_ << ";" << std::endl;
+    out << "{rank=same; "
+        << "SYNTAX_NODE_" << node->id_ << ","
+        << "SYNTAX_NODE_" << node->next_->id_ << "};" << std::endl;
   }
-
 }

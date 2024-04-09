@@ -9,11 +9,11 @@ class BPlusTreeIndex : public Index {
  public:
   BPlusTreeIndex(index_id_t index_id, IndexSchema *key_schema, size_t key_size, BufferPoolManager *buffer_pool_manager);
 
-  dberr_t InsertEntry(const Row &key, RowId row_id, Transaction *txn) override;
+  dberr_t InsertEntry(const Row &key, RowId row_id, Txn *txn) override;
 
-  dberr_t RemoveEntry(const Row &key, RowId row_id, Transaction *txn) override;
+  dberr_t RemoveEntry(const Row &key, RowId row_id, Txn *txn) override;
 
-  dberr_t ScanKey(const Row &key, std::vector<RowId> &result, Transaction *txn, string compare_operator = "=") override;
+  dberr_t ScanKey(const Row &key, std::vector<RowId> &result, Txn *txn, string compare_operator = "=") override;
 
   dberr_t Destroy() override;
 

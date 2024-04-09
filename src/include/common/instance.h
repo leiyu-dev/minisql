@@ -18,7 +18,7 @@ class DBStorageEngine {
 
   ~DBStorageEngine();
 
-  std::unique_ptr<ExecuteContext> MakeExecuteContext(Transaction *txn);
+  std::unique_ptr<ExecuteContext> MakeExecuteContext(Txn *txn);
 
  public:
   DiskManager *disk_mgr_;

@@ -6,7 +6,6 @@
 #define MINISQL_ABSTRACT_STATEMENT_H
 
 #include <string>
-#include <algorithm>
 
 #include "planner/expressions/abstract_expression.h"
 #include "planner/expressions/column_value_expression.h"
@@ -116,9 +115,9 @@ class AbstractStatement {
         auto const_expr = MakeConstantValueExpression(col_expr->GetReturnType(), value);
         if (column_in_condition) {
           uint32_t index = dynamic_pointer_cast<ColumnValueExpression>(col_expr)->GetColIdx();
-          if(std::find(column_in_condition->begin(), column_in_condition->end(), index) ==
-            column_in_condition->end()){
-              column_in_condition->emplace_back(index);
+          if (std::find(column_in_condition->begin(), column_in_condition->end(), index) ==
+              column_in_condition->end()) {
+            column_in_condition->emplace_back(index);
           }
         }
         return MakeComparisonExpression(col_expr, const_expr, ast->val_);
