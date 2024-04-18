@@ -235,54 +235,101 @@ void ExecuteEngine::ExecuteInformation(dberr_t result) {
       break;
   }
 }
-/**
- * TODO: Student Implement
- */
+
 dberr_t ExecuteEngine::ExecuteCreateDatabase(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteCreateDatabase" << std::endl;
 #endif
-  return DB_FAILED;
+  string db_name = ast->child_->val_;
+  if (dbs_.find(db_name) != dbs_.end()) {
+    return DB_ALREADY_EXIST;
+  }
+  dbs_.insert(make_pair(db_name, new DBStorageEngine(db_name, true)));
+  return DB_SUCCESS;
 }
 
-/**
- * TODO: Student Implement
- */
 dberr_t ExecuteEngine::ExecuteDropDatabase(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteDropDatabase" << std::endl;
 #endif
- return DB_FAILED;
+  string db_name = ast->child_->val_;
+  if (dbs_.find(db_name) == dbs_.end()) {
+    return DB_NOT_EXIST;
+  }
+  remove(db_name.c_str());
+  delete dbs_[db_name];
+  dbs_.erase(db_name);
+  return DB_SUCCESS;
 }
 
-/**
- * TODO: Student Implement
- */
 dberr_t ExecuteEngine::ExecuteShowDatabases(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteShowDatabases" << std::endl;
 #endif
-  return DB_FAILED;
+  if (dbs_.empty()) {
+    cout << "Empty set (0.00 sec)" << endl;
+    return DB_SUCCESS;
+  }
+  int max_width = 8;
+  for (const auto &itr : dbs_) {
+    if (itr.first.length() > max_width) max_width = itr.first.length();
+  }
+  cout << "+" << setfill('-') << setw(max_width + 2) << ""
+       << "+" << endl;
+  cout << "| " << std::left << setfill(' ') << setw(max_width) << "Database"
+       << " |" << endl;
+  cout << "+" << setfill('-') << setw(max_width + 2) << ""
+       << "+" << endl;
+  for (const auto &itr : dbs_) {
+    cout << "| " << std::left << setfill(' ') << setw(max_width) << itr.first << " |" << endl;
+  }
+  cout << "+" << setfill('-') << setw(max_width + 2) << ""
+       << "+" << endl;
+  return DB_SUCCESS;
 }
 
-/**
- * TODO: Student Implement
- */
 dberr_t ExecuteEngine::ExecuteUseDatabase(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteUseDatabase" << std::endl;
 #endif
-  return DB_FAILED;
+  string db_name = ast->child_->val_;
+  if (dbs_.find(db_name) != dbs_.end()) {
+    current_db_ = db_name;
+    cout << "Database changed" << endl;
+    return DB_SUCCESS;
+  }
+  return DB_NOT_EXIST;
 }
 
-/**
- * TODO: Student Implement
- */
 dberr_t ExecuteEngine::ExecuteShowTables(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteShowTables" << std::endl;
 #endif
-  return DB_FAILED;
+  if (current_db_.empty()) {
+    cout << "No database selected" << endl;
+    return DB_FAILED;
+  }
+  vector<TableInfo *> tables;
+  if (dbs_[current_db_]->catalog_mgr_->GetTables(tables) == DB_FAILED) {
+    cout << "Empty set (0.00 sec)" << endl;
+    return DB_FAILED;
+  }
+  string table_in_db("Tables_in_" + current_db_);
+  uint max_width = table_in_db.length();
+  for (const auto &itr : tables) {
+    if (itr->GetTableName().length() > max_width) max_width = itr->GetTableName().length();
+  }
+  cout << "+" << setfill('-') << setw(max_width + 2) << ""
+       << "+" << endl;
+  cout << "| " << std::left << setfill(' ') << setw(max_width) << table_in_db << " |" << endl;
+  cout << "+" << setfill('-') << setw(max_width + 2) << ""
+       << "+" << endl;
+  for (const auto &itr : tables) {
+    cout << "| " << std::left << setfill(' ') << setw(max_width) << itr->GetTableName() << " |" << endl;
+  }
+  cout << "+" << setfill('-') << setw(max_width + 2) << ""
+       << "+" << endl;
+  return DB_SUCCESS;
 }
 
 /**

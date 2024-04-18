@@ -34,8 +34,17 @@ class IndexScanExecutor : public AbstractExecutor {
   /** @return The output schema for the sequential scan */
   const Schema *GetOutputSchema() const override { return plan_->OutputSchema(); }
 
+  bool SchemaEqual(const Schema *table_schema, const Schema *output_schema);
+
+  void TupleTransfer(const Schema *table_schema, const Schema *output_schema, const Row *row, Row *output_row);
+
  private:
+  vector<RowId> IndexScan(AbstractExpressionRef predicate);
 
   /** The sequential scan plan node to be executed */
   const IndexScanPlanNode *plan_;
+  TableInfo *table_info_{};
+  vector<RowId> result_;
+  size_t cursor_ = 0;
+  bool is_schema_same_;
 };

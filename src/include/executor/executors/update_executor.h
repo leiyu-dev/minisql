@@ -54,6 +54,8 @@ class UpdateExecutor : public AbstractExecutor {
   /** The update plan node to be executed */
   const UpdatePlanNode *plan_;
   /** Metadata identifying the table that should be updated */
+  TableInfo *table_info_;
+  Txn *txn_;
   std::vector<IndexInfo *> index_info_;
   /** The child executor to obtain value from */
   std::unique_ptr<AbstractExecutor> child_executor_;

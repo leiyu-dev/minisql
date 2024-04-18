@@ -37,9 +37,17 @@ class SeqScanExecutor : public AbstractExecutor {
   /** @return The output schema for the sequential scan */
   const Schema *GetOutputSchema() const override { return plan_->OutputSchema(); }
 
+  bool SchemaEqual(const Schema *table_schema, const Schema *output_schema);
+
+  void TupleTransfer(const Schema *table_schema, const Schema *output_schema, const Row *row, Row *output_row);
+
  private:
   /** The sequential scan plan node to be executed */
   const SeqScanPlanNode *plan_;
+  TableInfo *table_info_{};
+  TableIterator iterator_;
+  const Schema *schema_{};
+  bool is_schema_same_;
 };
 
 #endif  // MINISQL_SEQ_SCAN_EXECUTOR_H
