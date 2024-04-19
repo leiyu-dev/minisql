@@ -2,6 +2,7 @@
 #define MINISQL_RID_H
 
 #include <cstdint>
+#include <functional>
 
 #include "common/config.h"
 
@@ -33,6 +34,13 @@ class RowId {
   page_id_t page_id_{INVALID_PAGE_ID};
   uint32_t slot_num_{0};  // logical offset of the record in page, starts from 0. eg:0, 1, 2...
 };
+
+namespace std {
+template <>
+struct hash<RowId> {
+  size_t operator()(const RowId &rid) const { return hash<int64_t>()(rid.Get()); }
+};
+}  // namespace std
 
 static const RowId INVALID_ROWID = RowId(INVALID_PAGE_ID, 0);
 

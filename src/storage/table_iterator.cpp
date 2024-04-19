@@ -6,9 +6,7 @@
 /**
  * TODO: Student Implement
  */
-TableIterator::TableIterator() {
-
-}
+TableIterator::TableIterator(TableHeap *table_heap, RowId rid, Txn *txn) {}
 
 TableIterator::TableIterator(const TableIterator &other) {
 
@@ -44,6 +42,4 @@ TableIterator &TableIterator::operator++() {
 }
 
 // iter++
-TableIterator TableIterator::operator++(int) {
-  return TableIterator();
-}
+TableIterator TableIterator::operator++(int) { return TableIterator(nullptr, RowId(), nullptr); }

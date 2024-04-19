@@ -1,6 +1,7 @@
 #ifndef MINISQL_LOCK_MANAGER_H
 #define MINISQL_LOCK_MANAGER_H
 
+#include <assert.h>
 #include <atomic>
 #include <list>
 #include <mutex>

@@ -64,11 +64,9 @@ void TableHeap::DeleteTable(page_id_t page_id) {
 /**
  * TODO: Student Implement
  */
-TableIterator TableHeap::Begin(Txn *txn) { return TableIterator(); }
+TableIterator TableHeap::Begin(Txn *txn) { return TableIterator(nullptr, RowId(), nullptr); }
 
 /**
  * TODO: Student Implement
  */
-TableIterator TableHeap::End() {
-  return TableIterator();
-}
+TableIterator TableHeap::End() { return TableIterator(nullptr, RowId(), nullptr); }

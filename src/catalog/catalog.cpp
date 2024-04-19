@@ -82,10 +82,9 @@ CatalogManager::~CatalogManager() {
 }
 
 /**
-* TODO: Student Implement
-*/
-dberr_t CatalogManager::CreateTable(const string &table_name, TableSchema *schema,
-                                    Transaction *txn, TableInfo *&table_info) {
+ * TODO: Student Implement
+ */
+dberr_t CatalogManager::CreateTable(const string &table_name, TableSchema *schema, Txn *txn, TableInfo *&table_info) {
   // ASSERT(false, "Not Implemented yet");
   return DB_FAILED;
 }
