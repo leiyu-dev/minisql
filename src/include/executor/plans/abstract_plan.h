@@ -7,6 +7,7 @@
 
 #include <record/schema.h>
 
+#include <memory>
 #include <utility>
 #include <vector>
 

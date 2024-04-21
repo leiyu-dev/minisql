@@ -38,30 +38,33 @@ dberr_t BPlusTreeIndex::RemoveEntry(const Row &key, RowId row_id, Txn *txn) {
 dberr_t BPlusTreeIndex::ScanKey(const Row &key, vector<RowId> &result, Txn *txn, string compare_operator) {
   GenericKey *index_key = processor_.InitKey();
   processor_.SerializeFromKey(index_key, key, key_schema_);
+  auto end_iter = GetEndIterator();
   if (compare_operator == "=") {
     container_.GetValue(index_key, result, txn);
   } else if (compare_operator == ">") {
     auto iter = GetBeginIterator(index_key);
     if (container_.GetValue(index_key, result, txn)) ++iter;
     result.clear();
-    for (; iter != GetEndIterator(); ++iter) {
+    for (; iter != end_iter; ++iter) {
       result.emplace_back((*iter).second);
     }
   } else if (compare_operator == ">=") {
-    for (auto iter = GetBeginIterator(index_key); iter != GetEndIterator(); ++iter) {
+    for (auto iter = GetBeginIterator(index_key); iter != end_iter; ++iter) {
       result.emplace_back((*iter).second);
     }
   } else if (compare_operator == "<") {
-    for (auto iter = GetBeginIterator(); iter != GetBeginIterator(index_key); ++iter) {
+    auto stop_iter = GetBeginIterator(index_key);
+    for (auto iter = GetBeginIterator(); iter != stop_iter; ++iter) {
       result.emplace_back((*iter).second);
     }
   } else if (compare_operator == "<=") {
-    for (auto iter = GetBeginIterator(); iter != GetBeginIterator(index_key); ++iter) {
+    auto stop_iter = GetBeginIterator(index_key);
+    for (auto iter = GetBeginIterator(); iter != stop_iter; ++iter) {
       result.emplace_back((*iter).second);
     }
     container_.GetValue(index_key, result, txn);
   } else if (compare_operator == "<>") {
-    for (auto iter = GetBeginIterator(); iter != GetEndIterator(); ++iter) {
+    for (auto iter = GetBeginIterator(); iter != end_iter; ++iter) {
       result.emplace_back((*iter).second);
     }
     vector<RowId> temp;

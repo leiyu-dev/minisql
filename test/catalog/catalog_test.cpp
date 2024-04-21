@@ -50,6 +50,7 @@ TEST(CatalogTest, CatalogTableTest) {
                                    new Column("account", TypeId::kTypeFloat, 2, true, false)};
   auto schema = std::make_shared<Schema>(columns);
   Txn txn;
+  /** You should use DeepCopySchema in CreateTable. **/
   catalog_01->CreateTable("table-1", schema.get(), &txn, table_info);
   ASSERT_TRUE(table_info != nullptr);
   TableInfo *table_info_02 = nullptr;
