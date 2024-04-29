@@ -23,7 +23,7 @@ bool TableHeap::MarkDelete(const RowId &rid, Txn *txn) {
 /**
  * TODO: Student Implement
  */
-bool TableHeap::UpdateTuple(const Row &row, const RowId &rid, Txn *txn) { return false; }
+bool TableHeap::UpdateTuple(Row &row, const RowId &rid, Txn *txn) { return false; }
 
 /**
  * TODO: Student Implement

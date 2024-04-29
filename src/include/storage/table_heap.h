@@ -47,7 +47,7 @@ class TableHeap {
    * @param[in] txn Txn performing the update
    * @return true is update is successful.
    */
-  bool UpdateTuple(const Row &row, const RowId &rid, Txn *txn);
+  bool UpdateTuple(Row &row, const RowId &rid, Txn *txn);
 
   /**
    * Called on Commit/Abort to actually delete a tuple or rollback an insert.
