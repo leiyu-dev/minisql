@@ -51,8 +51,28 @@ void DiskManager::WritePage(page_id_t logical_page_id, const char *page_data) {
  * TODO: Student Implement
  */
 page_id_t DiskManager::AllocatePage() {
-  ASSERT(false, "Not implemented yet.");
-  return INVALID_PAGE_ID;
+  auto* metaPage = reinterpret_cast<DiskFileMetaPage*>(meta_data_);
+  uint32_t i;
+  for(i=0;i<metaPage->GetExtentNums();i++){
+    if(metaPage->GetExtentUsedPage(i)<BITMAP_SIZE){
+      break;
+    }
+  }
+  if(i==metaPage->GetExtentNums()) {  // don't have available bitmap pages!
+    if (metaPage->num_extents_ == (PAGE_SIZE - 8) / 4) {
+        throw "page overflow";
+        return INVALID_PAGE_ID;
+    }
+    metaPage->num_extents_++;
+  }
+  char* bitmapPage_meta = nullptr;
+  ReadPhysicalPage(i*BITMAP_SIZE+1,bitmapPage_meta);
+  auto* bitmapPage = reinterpret_cast<BitmapPage<PAGE_SIZE>*>(bitmapPage_meta);
+  uint32_t inner_index;
+  metaPage->extent_used_page_[i]++;
+  metaPage->num_allocated_pages_++;
+  bitmapPage->AllocatePage(inner_index);
+  return i*BITMAP_SIZE+inner_index;//logical id
 }
 
 /**
