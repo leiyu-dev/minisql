@@ -5,7 +5,7 @@
 #include <mutex>
 #include <unordered_set>
 #include <vector>
-
+#include <unordered_map>
 #include "buffer/replacer.h"
 #include "common/config.h"
 
@@ -36,6 +36,17 @@ class LRUReplacer : public Replacer {
   size_t Size() override;
 
 private:
+  struct node{
+    frame_id_t val;
+    node *prev,*next;
+  };
+  node* head;
+  node* tail;
+  frame_id_t MAX_NUM_PAGES;
+  size_t now_size;
+  unordered_map<size_t,node*>map;
+  vector<bool> unpinned;
+
   // add your own private member variables here
 };
 
