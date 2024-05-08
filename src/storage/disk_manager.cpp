@@ -26,6 +26,7 @@ DiskManager::DiskManager(const std::string &db_file) : file_name_(db_file) {
     }
   }
   ReadPhysicalPage(META_PAGE_ID, meta_data_);
+  LOG(INFO)<<"finish initialization"<<std::endl;
 }
 
 void DiskManager::Close() {
@@ -60,18 +61,20 @@ page_id_t DiskManager::AllocatePage() {
   }
   if(i==metaPage->GetExtentNums()) {  // don't have available bitmap pages!
     if (metaPage->num_extents_ == (PAGE_SIZE - 8) / 4) {
-        throw "page overflow";
+        LOG(WARNING)<<"meta page is full!!"<<std::endl;
         return INVALID_PAGE_ID;
     }
     metaPage->num_extents_++;
   }
-  char* bitmapPage_meta = nullptr;
-  ReadPhysicalPage(i*BITMAP_SIZE+1,bitmapPage_meta);
+  char *bitmapPage_meta = new char[PAGE_SIZE];
+  ReadPhysicalPage(i*(BITMAP_SIZE+1)+1,bitmapPage_meta);
   auto* bitmapPage = reinterpret_cast<BitmapPage<PAGE_SIZE>*>(bitmapPage_meta);
   uint32_t inner_index;
   metaPage->extent_used_page_[i]++;
   metaPage->num_allocated_pages_++;
   bitmapPage->AllocatePage(inner_index);
+  WritePhysicalPage(i*(BITMAP_SIZE+1)+1,bitmapPage_meta);
+  delete[] bitmapPage_meta;
   return i*BITMAP_SIZE+inner_index;//logical id
 }
 
@@ -79,21 +82,47 @@ page_id_t DiskManager::AllocatePage() {
  * TODO: Student Implement
  */
 void DiskManager::DeAllocatePage(page_id_t logical_page_id) {
-  ASSERT(false, "Not implemented yet.");
+  auto* metaPage = reinterpret_cast<DiskFileMetaPage*>(meta_data_);
+  if(logical_page_id>=MAX_VALID_PAGE_ID){
+    LOG(WARNING)<<"invalid logical_id: "<<logical_page_id<<std::endl;
+    return;
+  }
+  size_t bitmap_id=(logical_page_id+BITMAP_SIZE)/BITMAP_SIZE-1;
+  size_t inner_index=logical_page_id%BITMAP_SIZE;
+  char* bitmapPage_meta = new char[PAGE_SIZE];;
+  ReadPhysicalPage(bitmap_id*(BITMAP_SIZE+1)+1,bitmapPage_meta);
+  auto* bitmapPage = reinterpret_cast<BitmapPage<PAGE_SIZE>*>(bitmapPage_meta);
+  metaPage->extent_used_page_[bitmap_id]--;
+  metaPage->num_allocated_pages_--;
+  bitmapPage->DeAllocatePage(inner_index);
+  WritePhysicalPage(bitmap_id*(BITMAP_SIZE+1)+1,bitmapPage_meta);
+  delete[] bitmapPage_meta;
 }
 
 /**
  * TODO: Student Implement
  */
 bool DiskManager::IsPageFree(page_id_t logical_page_id) {
-  return false;
+  if(logical_page_id>=MAX_VALID_PAGE_ID){
+    LOG(WARNING)<<"invalid logical_id"<<std::endl;
+    return false;
+  }
+  page_id_t bitmap_id=(logical_page_id+PAGE_SIZE)/PAGE_SIZE-1;
+  page_id_t inner_index=logical_page_id%PAGE_SIZE;
+  char* bitmapPage_meta = new char[PAGE_SIZE];
+  ReadPhysicalPage(bitmap_id*(BITMAP_SIZE+1)+1,bitmapPage_meta);
+  auto* bitmapPage = reinterpret_cast<BitmapPage<PAGE_SIZE>*>(bitmapPage_meta);
+  delete[] bitmapPage_meta;
+  return bitmapPage->IsPageFree(inner_index);
 }
 
 /**
  * TODO: Student Implement
  */
 page_id_t DiskManager::MapPageId(page_id_t logical_page_id) {
-  return 0;
+  page_id_t bitmap_id=logical_page_id/PAGE_SIZE;
+  page_id_t inner_index=logical_page_id%PAGE_SIZE;
+  return bitmap_id*(BITMAP_SIZE+1)+inner_index+1;
 }
 
 int DiskManager::GetFileSize(const std::string &file_name) {

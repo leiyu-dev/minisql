@@ -31,11 +31,11 @@ inline bool BitmapPage<PageSize>::get(int x) const {
 template <size_t PageSize>
 bool BitmapPage<PageSize>::AllocatePage(uint32_t &page_offset) {
   if(page_allocated_+1>MAX_PAGES){
+    LOG(WARNING)<<"bitmap is full, can't allocate"<<std::endl;
     return false;
   }
   page_allocated_++;
   set(next_free_page_);
-  //todo:allocate the page
   page_offset=next_free_page_;
   if(page_allocated_==MAX_PAGES){
     next_free_page_= 0;
@@ -55,6 +55,7 @@ bool BitmapPage<PageSize>::AllocatePage(uint32_t &page_offset) {
 template <size_t PageSize>
 bool BitmapPage<PageSize>::DeAllocatePage(uint32_t page_offset) {
   if(page_offset>=MAX_PAGES||IsPageFree(page_offset)){
+    LOG(WARNING)<<"DeAllocate a unallocated page"<<std::endl;
     return false;
   }
   //todo: reallocate the page
