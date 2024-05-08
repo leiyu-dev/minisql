@@ -1,34 +1,82 @@
 #include "page/bitmap_page.h"
+#include <iostream>
 
 #include "glog/logging.h"
+using std::cout;
+using std::endl;
+
+//bitset:set x 1
+template <size_t PageSize>
+inline void BitmapPage<PageSize>::set(int x) {
+    bytes[x>>3]|=(1<<(x&7));
+}
+
+//bitset:set x 0
+template <size_t PageSize>
+inline void BitmapPage<PageSize>::reset(int x) {
+  bytes[x>>3]&=(255^(1<<(x&7)));
+}
+
+//bitset:get x 0or1
+template <size_t PageSize>
+inline bool BitmapPage<PageSize>::get(int x) const {
+    return (bytes[x>>3]>>(x&7))&1;
+}
+
 
 /**
- * TODO: Student Implement
+ *
+ * @return true if allocated successfully and false if not
  */
 template <size_t PageSize>
 bool BitmapPage<PageSize>::AllocatePage(uint32_t &page_offset) {
-  return false;
+  if(page_allocated_+1>MAX_PAGES){
+    return false;
+  }
+  page_allocated_++;
+  set(next_free_page_);
+  //todo:allocate the page
+  page_offset=next_free_page_;
+  if(page_allocated_==MAX_PAGES){
+    next_free_page_= 0;
+  }
+  else while(!IsPageFree(next_free_page_)){
+    next_free_page_++;
+    if(next_free_page_>=MAX_PAGES)
+      next_free_page_%=MAX_PAGES;
+  }
+  return true;
 }
 
 /**
- * TODO: Student Implement
+ *
+ * @return true if deallocate successfully
  */
 template <size_t PageSize>
 bool BitmapPage<PageSize>::DeAllocatePage(uint32_t page_offset) {
-  return false;
+  if(page_offset>=MAX_PAGES||IsPageFree(page_offset)){
+    return false;
+  }
+  //todo: reallocate the page
+  reset(page_offset);
+  if(page_allocated_==MAX_PAGES)next_free_page_=page_offset;
+  page_allocated_--;
+  return true;
 }
 
 /**
- * TODO: Student Implement
+ *
  */
 template <size_t PageSize>
 bool BitmapPage<PageSize>::IsPageFree(uint32_t page_offset) const {
-  return false;
+  if(page_offset>=MAX_PAGES)return false;
+  return get(page_offset)^1;
 }
 
 template <size_t PageSize>
 bool BitmapPage<PageSize>::IsPageFreeLow(uint32_t byte_index, uint8_t bit_index) const {
-  return false;
+  if(byte_index*8+bit_index>=MAX_PAGES)return false;
+  return (bytes[byte_index]&(1<<bit_index))^1;
 }
 
 template class BitmapPage<64>;
