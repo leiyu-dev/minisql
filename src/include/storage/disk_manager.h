@@ -70,7 +70,7 @@ class DiskManager {
   char *GetMetaData() { return meta_data_; }
 
   static constexpr size_t BITMAP_SIZE = BitmapPage<PAGE_SIZE>::GetMaxSupportedSize();
-
+  static constexpr size_t MAX_BITMAP = (PAGE_SIZE - 8) / 4;
  private:
   /**
    * Helper function to get disk file size

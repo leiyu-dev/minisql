@@ -31,7 +31,7 @@ inline bool BitmapPage<PageSize>::get(int x) const {
 template <size_t PageSize>
 bool BitmapPage<PageSize>::AllocatePage(uint32_t &page_offset) {
   if(page_allocated_+1>MAX_PAGES){
-    LOG(WARNING)<<"bitmap is full, can't allocate"<<std::endl;
+    LOG(WARNING)<<"bitmap is full, can't allocate "<<page_allocated_<<' '<<MAX_PAGES<<std::endl;
     return false;
   }
   page_allocated_++;

@@ -37,8 +37,9 @@ class Page {
 
   /** @return true if the page in memory has been modified from the page on disk, false otherwise */
   inline bool IsDirty() { return is_dirty_; }
-
-  /** Acquire the page write latch. */
+  inline void SetDirty(){is_dirty_= true; }
+  inline void ResetDirty(){is_dirty_ = false; }
+    /** Acquire the page write latch. */
   inline void WLatch() { rwlatch_.WLock(); }
 
   /** Release the page write latch. */
@@ -56,6 +57,17 @@ class Page {
   /** Sets the page LSN. */
   inline void SetLSN(lsn_t lsn) { memcpy(GetData() + OFFSET_LSN, &lsn, sizeof(lsn_t)); }
 
+  void ResetAll(){
+    ResetMemory();
+    page_id_ = INVALID_PAGE_ID;
+    pin_count_=0;
+    is_dirty_=false;
+  }
+
+  inline void Pin(){pin_count_++;}
+
+  inline void unPin(){pin_count_--;}
+
  protected:
   static_assert(sizeof(page_id_t) == 4);
   static_assert(sizeof(lsn_t) == 4);
@@ -67,7 +79,6 @@ class Page {
  private:
   /** Zeroes out the data that is held within the page. */
   inline void ResetMemory() { memset(data_, OFFSET_PAGE_START, PAGE_SIZE); }
-
   /** The actual data that is stored within a page. */
   char data_[PAGE_SIZE]{};
   /** The ID of this page. */

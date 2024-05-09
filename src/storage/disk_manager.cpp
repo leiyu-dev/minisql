@@ -26,6 +26,11 @@ DiskManager::DiskManager(const std::string &db_file) : file_name_(db_file) {
     }
   }
   ReadPhysicalPage(META_PAGE_ID, meta_data_);
+//  for(size_t i=0;i<MAX_BITMAP;i++){
+//        char *bitmapPage_meta = new char[PAGE_SIZE];
+//        memset(bitmapPage_meta,0,PAGE_SIZE*sizeof(char));
+//        WritePhysicalPage(i*(BITMAP_SIZE+1)+1,bitmapPage_meta);
+//  }
   LOG(INFO)<<"finish initialization"<<std::endl;
 }
 
@@ -53,14 +58,14 @@ void DiskManager::WritePage(page_id_t logical_page_id, const char *page_data) {
  */
 page_id_t DiskManager::AllocatePage() {
   auto* metaPage = reinterpret_cast<DiskFileMetaPage*>(meta_data_);
-  uint32_t i;
+  page_id_t i=0;
   for(i=0;i<metaPage->GetExtentNums();i++){
     if(metaPage->GetExtentUsedPage(i)<BITMAP_SIZE){
       break;
     }
   }
   if(i==metaPage->GetExtentNums()) {  // don't have available bitmap pages!
-    if (metaPage->num_extents_ == (PAGE_SIZE - 8) / 4) {
+    if (metaPage->num_extents_ == MAX_BITMAP) {
         LOG(WARNING)<<"meta page is full!!"<<std::endl;
         return INVALID_PAGE_ID;
     }
@@ -68,13 +73,15 @@ page_id_t DiskManager::AllocatePage() {
   }
   char *bitmapPage_meta = new char[PAGE_SIZE];
   ReadPhysicalPage(i*(BITMAP_SIZE+1)+1,bitmapPage_meta);
+  LOG(INFO)<<"read the bitmap of "<<i*(BITMAP_SIZE+1)+1<<std::endl;
   auto* bitmapPage = reinterpret_cast<BitmapPage<PAGE_SIZE>*>(bitmapPage_meta);
   uint32_t inner_index;
   metaPage->extent_used_page_[i]++;
   metaPage->num_allocated_pages_++;
   bitmapPage->AllocatePage(inner_index);
   WritePhysicalPage(i*(BITMAP_SIZE+1)+1,bitmapPage_meta);
-  delete[] bitmapPage_meta;
+  delete[] bitmapPage_meta;//todo:maybe don't need to frequent I/O of bitmap_page
+  LOG(INFO)<<"return a page,logical_id with "<<i<<' '<<BITMAP_SIZE<<' '<<inner_index<<std::endl;
   return i*BITMAP_SIZE+inner_index;//logical id
 }
 
@@ -122,7 +129,7 @@ bool DiskManager::IsPageFree(page_id_t logical_page_id) {
 page_id_t DiskManager::MapPageId(page_id_t logical_page_id) {
   page_id_t bitmap_id=logical_page_id/PAGE_SIZE;
   page_id_t inner_index=logical_page_id%PAGE_SIZE;
-  return bitmap_id*(BITMAP_SIZE+1)+inner_index+1;
+  return bitmap_id*(BITMAP_SIZE+1)+inner_index+2;
 }
 
 int DiskManager::GetFileSize(const std::string &file_name) {
@@ -155,6 +162,7 @@ void DiskManager::ReadPhysicalPage(page_id_t physical_page_id, char *page_data) 
 }
 
 void DiskManager::WritePhysicalPage(page_id_t physical_page_id, const char *page_data) {
+  LOG(INFO)<<"write "<<physical_page_id<<std::endl;
   size_t offset = static_cast<size_t>(physical_page_id) * PAGE_SIZE;
   // set write cursor to offset
   db_io_.seekp(offset);
