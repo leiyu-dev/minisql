@@ -61,13 +61,6 @@ void LRUReplacer::Unpin(frame_id_t frame_id) {
   if(unpinned[frame_id]){//already exists
     LOG(WARNING)<<"reunpin of "<<frame_id<<endl;
     return;
-    auto now=map[frame_id];
-    (now->next)->prev=now->prev;
-    (now->prev)->next=now->next;
-    now->prev=head;
-    now->next=head->next;
-    head->next->prev=now;
-    head->next=now;
   }else{
     unpinned[frame_id]=true;
     now_size++;

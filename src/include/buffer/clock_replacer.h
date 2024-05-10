@@ -40,8 +40,11 @@ class CLOCKReplacer : public Replacer {
 
  private:
   size_t capacity;
+  frame_id_t MAX_NUM_PAGES;
+  list<frame_id_t>::iterator now;
   list<frame_id_t> clock_list;               // replacer中可以被替换的数据页
-  map<frame_id_t, frame_id_t> clock_status;  // 数据页的存储状态
+  unordered_map<frame_id_t,frame_id_t>map;  // 数据页的存储状态 page_id -> ref_bit
+  vector<bool>unpinned;
 };
 
 #endif  // MINISQL_CLOCK_REPLACER_H
