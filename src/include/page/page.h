@@ -32,6 +32,8 @@ class Page {
   /** @return the page id of this page */
   inline page_id_t GetPageId() { return page_id_; }
 
+  inline void SetPageId(int page_id){page_id_= page_id; }
+
   /** @return the pin count of this page */
   inline int GetPinCount() { return pin_count_; }
 

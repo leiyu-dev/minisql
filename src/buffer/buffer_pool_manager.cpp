@@ -26,7 +26,7 @@ BufferPoolManager::~BufferPoolManager() {
  * TODO: Student Implement
  */
 Page *BufferPoolManager::FetchPage(page_id_t page_id) {
-  LOG(INFO)<<"fetch page"<<std::endl;
+//  LOG(INFO)<<"fetch page"<<std::endl;
   // 1.     Search the page table for the requested page (P).
   if(page_table_.find(page_id)!=page_table_.end()){
       frame_id_t frame_id=page_table_[page_id];
@@ -55,8 +55,10 @@ Page *BufferPoolManager::FetchPage(page_id_t page_id) {
     if(page->IsDirty()){
       disk_manager_->WritePage(page_id,page->GetData());
     }
+    page_table_.erase(page->GetPageId());
     // 3.     Delete R from the page table and insert P.
     page->ResetAll();//maybe useless
+    page->SetPageId(page_id);
     page_table_[page_id] = frame_id;
     page->Pin();
     replacer_->Pin(frame_id);
@@ -86,13 +88,15 @@ Page *BufferPoolManager::NewPage(page_id_t &page_id) {
   }
   else replacer_ -> Victim(&frame_id);
   page_id=AllocatePage();
-  LOG(INFO)<<"allocate a page with logic_id:"<<page_id<<std::endl;
+//  LOG(INFO)<<"allocate a page with logic_id:"<<page_id<<std::endl;
   auto page=pages_+ frame_id;
   if(page->IsDirty()){
     disk_manager_->WritePage(page_id,page->GetData());
   }
+  page_table_.erase(page->GetPageId());
   // 3.   Update P's metadata, zero out memory and add P to the page table.
   page->ResetMemory();
+  page->SetPageId(page_id);
   page_table_[page_id] = frame_id;
   page->Pin();
   replacer_->Pin(frame_id);
@@ -154,7 +158,7 @@ bool BufferPoolManager::FlushPage(page_id_t page_id) {
   }
   auto frame_id=page_table_[page_id];
   auto page=pages_+frame_id;
-  LOG(INFO)<<"flushpage "<<page_id<<" "<<frame_id<<std::endl;
+//  LOG(INFO)<<"flushpage "<<page_id<<" "<<frame_id<<std::endl;
   disk_manager_->WritePage(page_id,page->GetData());
   page->ResetDirty();
   return true;

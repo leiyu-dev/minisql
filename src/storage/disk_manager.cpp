@@ -73,7 +73,7 @@ page_id_t DiskManager::AllocatePage() {
   }
   char *bitmapPage_meta = new char[PAGE_SIZE];
   ReadPhysicalPage(i*(BITMAP_SIZE+1)+1,bitmapPage_meta);
-  LOG(INFO)<<"read the bitmap of "<<i*(BITMAP_SIZE+1)+1<<std::endl;
+//  LOG(INFO)<<"read the bitmap of "<<i*(BITMAP_SIZE+1)+1<<std::endl;
   auto* bitmapPage = reinterpret_cast<BitmapPage<PAGE_SIZE>*>(bitmapPage_meta);
   uint32_t inner_index;
   metaPage->extent_used_page_[i]++;
@@ -81,7 +81,7 @@ page_id_t DiskManager::AllocatePage() {
   bitmapPage->AllocatePage(inner_index);
   WritePhysicalPage(i*(BITMAP_SIZE+1)+1,bitmapPage_meta);
   delete[] bitmapPage_meta;//todo:maybe don't need to frequent I/O of bitmap_page
-  LOG(INFO)<<"return a page,logical_id with "<<i<<' '<<BITMAP_SIZE<<' '<<inner_index<<std::endl;
+//  LOG(INFO)<<"return a page,logical_id with "<<i<<' '<<BITMAP_SIZE<<' '<<inner_index<<std::endl;
   return i*BITMAP_SIZE+inner_index;//logical id
 }
 
@@ -162,7 +162,7 @@ void DiskManager::ReadPhysicalPage(page_id_t physical_page_id, char *page_data) 
 }
 
 void DiskManager::WritePhysicalPage(page_id_t physical_page_id, const char *page_data) {
-  LOG(INFO)<<"write "<<physical_page_id<<std::endl;
+//  LOG(INFO)<<"write "<<physical_page_id<<std::endl;
   size_t offset = static_cast<size_t>(physical_page_id) * PAGE_SIZE;
   // set write cursor to offset
   db_io_.seekp(offset);

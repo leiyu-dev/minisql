@@ -38,7 +38,6 @@ TEST(BufferPoolManagerTest, BinaryDataTest) {
   // Scenario: Once we have a page, we should be able to read and write content.
   std::memcpy(page0->GetData(), random_binary_data, PAGE_SIZE);
   EXPECT_EQ(0, std::memcmp(page0->GetData(), random_binary_data, PAGE_SIZE));
-  cout<<"FUCK"<<endl;
   // Scenario: We should be able to create new pages until we fill up the buffer pool.
   for (size_t i = 1; i < buffer_pool_size; ++i) {
     EXPECT_NE(nullptr, bpm->NewPage(page_id_temp));
