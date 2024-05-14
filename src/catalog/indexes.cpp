@@ -43,7 +43,30 @@ uint32_t IndexMetadata::SerializeTo(char *buf) const {
  * TODO: Student Implement
  */
 uint32_t IndexMetadata::GetSerializedSize() const {
-  return 0;
+  uint32_t ofs=0;
+  // magic num
+//  MACH_WRITE_UINT32(buf, INDEX_METADATA_MAGIC_NUM);
+  ofs += 4;
+  // index id
+//  MACH_WRITE_TO(index_id_t, buf, index_id_);
+  ofs += 4;
+  // index name
+//  MACH_WRITE_UINT32(buf, index_name_.length());
+  ofs += 4;
+//  MACH_WRITE_STRING(buf, index_name_);
+  ofs += index_name_.length();
+  // table id
+//  MACH_WRITE_TO(table_id_t, buf, table_id_);
+  ofs += 4;
+  // key count
+//  MACH_WRITE_UINT32(buf, key_map_.size());
+  ofs += 4;
+  // key mapping in table
+  for (auto &col_index : key_map_) {
+//    MACH_WRITE_UINT32(buf, col_index);
+    ofs += 4;
+  }
+  return ofs;
 }
 
 uint32_t IndexMetadata::DeserializeFrom(char *buf, IndexMetadata *&index_meta) {

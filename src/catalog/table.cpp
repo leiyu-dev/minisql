@@ -28,7 +28,26 @@ uint32_t TableMetadata::SerializeTo(char *buf) const {
  * TODO: Student Implement
  */
 uint32_t TableMetadata::GetSerializedSize() const {
-  return 4 + 4 + MACH_STR_SERIALIZED_SIZE(table_name_) + 4 + schema_->GetSerializedSize();
+  uint32_t ofs = 0;
+//  ASSERT(ofs <= PAGE_SIZE, "Failed to serialize table info.");
+  // magic num
+//  MACH_WRITE_UINT32(buf, TABLE_METADATA_MAGIC_NUM);
+  ofs += 4;
+  // table id
+//  MACH_WRITE_TO(table_id_t, buf, table_id_);
+  ofs += 4;
+  // table name
+//  MACH_WRITE_UINT32(buf, table_name_.length());
+  ofs += 4;
+//  MACH_WRITE_STRING(buf, table_name_);
+  ofs += table_name_.length();
+  // table heap root page id
+//  MACH_WRITE_TO(page_id_t, buf, root_page_id_);
+  ofs += 4;
+  // table schema
+  ofs += schema_->GetSerializedSize();
+//  ASSERT(buf - p == ofs, "Unexpected serialize size.");
+  return ofs;
 }
 
 /**

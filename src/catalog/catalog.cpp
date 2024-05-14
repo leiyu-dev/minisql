@@ -55,8 +55,26 @@ CatalogMeta *CatalogMeta::DeserializeFrom(char *buf) {
  * TODO: Student Implement
  */
 uint32_t CatalogMeta::GetSerializedSize() const {
-  ASSERT(false, "Not Implemented yet");
-  return 0;
+  uint32_t ofs=0;
+//  MACH_WRITE_UINT32(buf, CATALOG_METADATA_MAGIC_NUM);
+  ofs += 4;
+//  MACH_WRITE_UINT32(buf, table_meta_pages_.size());
+  ofs += 4;
+//  MACH_WRITE_UINT32(buf, index_meta_pages_.size());
+  ofs += 4;
+  for (auto iter : table_meta_pages_) {
+//    MACH_WRITE_TO(table_id_t, buf, iter.first);
+    ofs += 4;
+//    MACH_WRITE_TO(page_id_t, buf, iter.second);
+    ofs += 4;
+  }
+  for (auto iter : index_meta_pages_) {
+//    MACH_WRITE_TO(index_id_t, buf, iter.first);
+    ofs += 4;
+//    MACH_WRITE_TO(page_id_t, buf, iter.second);
+    ofs += 4;
+  }
+  return ofs;
 }
 
 CatalogMeta::CatalogMeta() {}
@@ -67,6 +85,13 @@ CatalogMeta::CatalogMeta() {}
 CatalogManager::CatalogManager(BufferPoolManager *buffer_pool_manager, LockManager *lock_manager,
                                LogManager *log_manager, bool init)
     : buffer_pool_manager_(buffer_pool_manager), lock_manager_(lock_manager), log_manager_(log_manager) {
+  if(init){
+      catalog_meta_=CatalogMeta::NewInstance();
+  }
+  else{
+      auto catalog_meta_page=buffer_pool_manager->FetchPage(CATALOG_META_PAGE_ID);
+      catalog_meta_ = CatalogMeta::DeserializeFrom(catalog_meta_page->GetData());
+  }
 //    ASSERT(false, "Not Implemented yet");
 }
 
