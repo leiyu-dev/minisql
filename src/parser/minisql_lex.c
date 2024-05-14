@@ -578,6 +578,7 @@ char *yytext;
 #line 2 "minisql.l"
     #include <stdio.h>
     #include "parser/parser.h"
+
     #include "parser/minisql_yacc.h"
     int yywrap();
     extern YYSTYPE yylval;
