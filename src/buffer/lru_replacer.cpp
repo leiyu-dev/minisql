@@ -38,7 +38,9 @@ void LRUReplacer::Pin(frame_id_t frame_id) {
     return;
   }
   if(!unpinned[frame_id]){
+    #ifdef ENABLE_BUFFER_DEBUG
     LOG(WARNING)<<"repin of "<<frame_id<<endl;
+    #endif
     return;
   }
   unpinned[frame_id]=false;

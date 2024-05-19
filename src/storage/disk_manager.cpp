@@ -31,7 +31,9 @@ DiskManager::DiskManager(const std::string &db_file) : file_name_(db_file) {
 //        memset(bitmapPage_meta,0,PAGE_SIZE*sizeof(char));
 //        WritePhysicalPage(i*(BITMAP_SIZE+1)+1,bitmapPage_meta);
 //  }
+#ifdef ENABLE_BUFFER_DEBUG
   LOG(INFO)<<"finish initialization"<<std::endl;
+#endif
 }
 
 void DiskManager::Close() {

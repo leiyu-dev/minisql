@@ -333,52 +333,170 @@ dberr_t ExecuteEngine::ExecuteShowTables(pSyntaxNode ast, ExecuteContext *contex
 }
 
 /**
- * TODO: Student Implement
+ * TODO: Student Implement finished
  */
 dberr_t ExecuteEngine::ExecuteCreateTable(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteCreateTable" << std::endl;
 #endif
-  return DB_FAILED;
+  if (current_db_.empty()) {
+    cout << "No database selected" << endl;
+    return DB_FAILED;
+  }
+  auto catalog_manager = dbs_[current_db_]->catalog_mgr_;
+  string table_name = ast->child_->val_;
+  vector<Column *>columns;
+  auto def = ast->child_->next_;
+  if(def==nullptr){
+    LOG(WARNING)<<"A table must have at least 1 column"<<endl;
+    return DB_FAILED;
+  }
+  int column_id=0;//TODO:column begins with 0 here.
+  def = def->child_;
+  while(def!=nullptr){
+    auto column_name = def->child_->val_;
+    auto column_type_raw = def->child_->next_->val_;
+    TypeId column_type;
+    uint32_t length=0;
+    bool nullable=true;
+    bool unique=false;
+    if(def->val_!=nullptr){
+      if(string(def->val_)=="unique"){
+        unique=true;
+        nullable=false;//TODO:maybe can be true?
+      }
+      if(string(def->val_)=="primary keys"){
+        unique=true;
+        nullable=false;
+      }
+    }
+    if(string(column_type_raw)=="int")column_type = kTypeInt;
+    if(string(column_type_raw)=="float")column_type = kTypeFloat;
+
+    if(string(column_type_raw)=="char"){
+      column_type = kTypeChar;
+      length = atoi(def->child_->next_->child_->val_);
+
+    }
+    Column* column;
+    if(column_type==kTypeChar)column = new Column(column_name,column_type,length,column_id,nullable,unique);
+    else column = new Column(column_name,column_type,column_id,nullable,unique);
+    columns.emplace_back(column);
+
+    column_id++;
+    def=def->next_;
+  }
+  auto schema = new Schema(columns,true); 
+  //TODO:txn here.
+  TableInfo* table_info;
+  return catalog_manager->CreateTable(table_name,schema,nullptr,table_info);
 }
 
 /**
- * TODO: Student Implement
+ * TODO: Student Implement finished
  */
 dberr_t ExecuteEngine::ExecuteDropTable(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteDropTable" << std::endl;
 #endif
- return DB_FAILED;
+  if (current_db_.empty()) {
+    cout << "No database selected" << endl;
+    return DB_FAILED;
+  }
+  auto catalog_manager = dbs_[current_db_]->catalog_mgr_;
+  return catalog_manager->DropTable(ast->child_->val_);
 }
 
 /**
- * TODO: Student Implement
+ * TODO: Student Implement finished
  */
 dberr_t ExecuteEngine::ExecuteShowIndexes(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteShowIndexes" << std::endl;
 #endif
-  return DB_FAILED;
+  if (current_db_.empty()) {
+    cout << "No database selected" << endl;
+    return DB_FAILED;
+  }
+  auto catalog_manager = dbs_[current_db_]->catalog_mgr_;
+  int max_width = 8;
+  for (const auto &itr : dbs_) {
+    if (itr.first.length() > max_width) max_width = itr.first.length();
+  }
+  cout << "+" << setfill('-') << setw(max_width + 2) << ""
+       << "+" << setfill('-') << setw(max_width + 2) << ""
+       << "+" << endl;
+
+  cout << "| " << std::left << setfill(' ') << setw(max_width) << "Tables"
+       << " | " << std::left << setfill(' ') << setw(max_width) << "Indexes" 
+       << " |" << endl;
+
+  cout << "+" << setfill('-') << setw(max_width + 2) << ""
+       << "+" << setfill('-') << setw(max_width + 2) << ""
+       << "+" << endl;
+  vector<TableInfo *>tables;
+  catalog_manager->GetTables(tables);
+  for (const auto &table : tables) {
+    vector<IndexInfo*>indexes;
+    catalog_manager->GetTableIndexes(table->GetTableName(),indexes);
+    for(const auto &index : indexes)
+    {
+      cout << "| " << std::left << setfill(' ') << setw(max_width) << table->GetTableName() << " | " << 
+                      std::left << setfill(' ') << setw(max_width) << index->GetIndexName() << " |"<< endl;
+    }
+  }
+  cout << "+" << setfill('-') << setw(max_width + 2) << ""
+       << "+" << setfill('-') << setw(max_width + 2) << ""
+       << "+" << endl;
+  return DB_SUCCESS;
 }
 
 /**
- * TODO: Student Implement
+ * TODO: Student Implement finished
  */
 dberr_t ExecuteEngine::ExecuteCreateIndex(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteCreateIndex" << std::endl;
 #endif
-  return DB_FAILED;
+  if (current_db_.empty()) {
+    cout << "No database selected" << endl;
+    return DB_FAILED;
+  }
+  auto catalog_manager = dbs_[current_db_]->catalog_mgr_;
+  auto index_name = ast->child_->val_;
+  auto table_name = ast->child_->next_->val_;
+  auto index_keys = ast->child_->next_->next_;
+  string index_type = "btree";
+  if(index_keys->next_!=nullptr)index_type = index_keys->next_->child_->val_;
+  if(string(index_type)!="btree"){
+    cout<<"unsupported index type of "<<index_type<<endl;
+    return DB_FAILED;
+  }
+  vector<std::string>index_keys_array;
+  auto index_value=index_keys->child_;
+  while(index_value!=nullptr){
+    index_keys_array.emplace_back(string(index_value->val_));
+    index_value=index_value->next_;
+  }
+  IndexInfo* index_info;
+  //TODO: Transaction txn
+  return catalog_manager->CreateIndex(table_name,index_name,index_keys_array,nullptr,index_info,index_type);
 }
 
 /**
- * TODO: Student Implement
+ * TODO: Student Implement finished
  */
 dberr_t ExecuteEngine::ExecuteDropIndex(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteDropIndex" << std::endl;
 #endif
+  if (current_db_.empty()) {
+    cout << "No database selected" << endl;
+    return DB_FAILED;
+  }
+  auto catalog_manager = dbs_[current_db_]->catalog_mgr_;
+  string index_name = string(ast->child_->val_);
+  catalog_manager->DropAllIndexes(index_name);
   return DB_FAILED;
 }
 
@@ -404,21 +522,22 @@ dberr_t ExecuteEngine::ExecuteTrxRollback(pSyntaxNode ast, ExecuteContext *conte
 }
 
 /**
- * TODO: Student Implement
+ * TODO: Student Implement finished
  */
 dberr_t ExecuteEngine::ExecuteExecfile(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteExecfile" << std::endl;
 #endif
+
   return DB_FAILED;
 }
 
 /**
- * TODO: Student Implement
- */
+ * TODO: Student Implement finished
+*/
 dberr_t ExecuteEngine::ExecuteQuit(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteQuit" << std::endl;
 #endif
- return DB_FAILED;
+ return DB_QUIT;
 }
