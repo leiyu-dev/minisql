@@ -339,6 +339,13 @@ dberr_t ExecuteEngine::ExecuteCreateTable(pSyntaxNode ast, ExecuteContext *conte
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteCreateTable" << std::endl;
 #endif
+  if (current_db_.empty()) {
+    cout << "No database selected" << endl;
+    return DB_FAILED;
+  }
+  vector<TableInfo *> tables;
+  auto catalog_manager = dbs_[current_db_]->catalog_mgr_;
+
   return DB_FAILED;
 }
 
