@@ -88,11 +88,13 @@ class CatalogManager {
 
   dberr_t GetIndex(const std::string &table_name, const std::string &index_name, IndexInfo *&index_info) const;
 
-  dberr_t GetTableIndexes(const std::string &table_name, std::vector<IndexInfo *> &indexes) const;
+  dberr_t GetTableIndexes(const std::string &table_name, std::vector<IndexInfo *> &indexes);
 
   dberr_t DropTable(const std::string &table_name);
 
   dberr_t DropIndex(const std::string &table_name, const std::string &index_name);
+
+  dberr_t DropAllIndexes(const string &index_name);//drop indexes in all table
 
  private:
   dberr_t DropTable(table_id_t table_id);

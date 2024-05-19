@@ -12,6 +12,7 @@
 
 class Schema {
  public:
+  Schema(){}
   explicit Schema(const std::vector<Column *> columns, bool is_manage_ = true)
       : columns_(std::move(columns)), is_manage_(is_manage_) {}
 

@@ -30,9 +30,9 @@ void InputCommand(char *input, const int len) {
   input[i] = ch;  // ;
   getchar();      // remove enter
 }
+#define ENABLE_EXECUTE_DEBUG
 
 int main(int argc, char **argv) {
-//  int inp;cin>>inp;cout<<inp<<endl;
   InitGoogleLog(argv[0]);
   // command buffer
   const int buf_size = 1024;

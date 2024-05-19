@@ -283,12 +283,14 @@ dberr_t CatalogManager::GetIndex(const std::string &table_name, const std::strin
 /**
  * TODO: Student Implement
  */
-dberr_t CatalogManager::GetTableIndexes(const std::string &table_name, std::vector<IndexInfo *> &indexes) const {
+dberr_t CatalogManager::GetTableIndexes(const std::string &table_name, std::vector<IndexInfo *> &indexes) {
   if(table_names_.find(table_name)==table_names_.end()){
     LOG(INFO)<<"Cannot find table"<<endl;
     return DB_TABLE_NOT_EXIST;
   }
-  auto& index_map = index_names_.find(table_name)->second;
+  //the function is not defined const to deal with the nullptr of index_map
+  auto& index_map = index_names_[table_name];
+  
   for(auto [index_name,index_id] : index_map){
     if(indexes_.find(index_id)==indexes_.end()){
       LOG(ERROR)<<"Known error when finding index info"<<endl;
@@ -304,6 +306,9 @@ dberr_t CatalogManager::GetTableIndexes(const std::string &table_name, std::vect
  * TODO: Student Implement
  */
 dberr_t CatalogManager::DropTable(const string &table_name) {
+  #ifdef ENABLE_CATALOG_DEBUG
+  LOG(INFO)<<"drop table "<<table_name<<endl;
+  #endif
   if(table_names_.find(table_name)==table_names_.end()){
     LOG(INFO)<<"Try to drop a not existed table"<<endl;
     return DB_TABLE_NOT_EXIST;
@@ -330,7 +335,7 @@ dberr_t CatalogManager::DropIndex(const string &table_name, const string &index_
   }
   auto index_id = index_names_.find(table_name)->second.find(index_name)->second;
   if(indexes_.find(index_id)==indexes_.end()){
-    LOG(ERROR)<<"Known error when finding index info"<<endl;
+    LOG(ERROR)<<"Unknown error when finding index info"<<endl;
     return DB_FAILED;
   }
   auto index_info = indexes_[index_id];
@@ -340,6 +345,26 @@ dberr_t CatalogManager::DropIndex(const string &table_name, const string &index_
   // ASSERT(false, "Not Implemented yet");
   return DB_SUCCESS;
 }
+
+dberr_t CatalogManager::DropAllIndexes(const string &index_name) {//drop indexes in all table
+  for(auto &[table_name,table_id] : table_names_){
+    if(index_names_.find(table_name)->second.find(index_name)==index_names_.find(table_name)->second.end()){
+      continue;
+    }
+    auto index_id = index_names_.find(table_name)->second.find(index_name)->second;
+    if(indexes_.find(index_id)==indexes_.end()){
+      LOG(ERROR)<<"Unknown error when finding index info"<<endl;
+      return DB_FAILED;
+    }
+    auto index_info = indexes_[index_id];
+    delete index_info;
+    indexes_.erase(index_id);
+    index_names_.find(table_name)->second.erase(index_name);
+    // ASSERT(false, "Not Implemented yet"); 
+  }
+  return DB_SUCCESS;
+}
+
 
 /**
  * TODO: Student Implement
