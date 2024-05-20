@@ -346,7 +346,7 @@ dberr_t CatalogManager::DropIndex(const string &table_name, const string &index_
   return DB_SUCCESS;
 }
 
-dberr_t CatalogManager::DropAllIndexes(const string &index_name) {//drop indexes in all table
+dberr_t CatalogManager::DropAllIndexes(const string &index_name,uint32_t& drop_tot) {//drop indexes in all table
   for(auto &[table_name,table_id] : table_names_){
     if(index_names_.find(table_name)->second.find(index_name)==index_names_.find(table_name)->second.end()){
       continue;
@@ -360,6 +360,7 @@ dberr_t CatalogManager::DropAllIndexes(const string &index_name) {//drop indexes
     delete index_info;
     indexes_.erase(index_id);
     index_names_.find(table_name)->second.erase(index_name);
+    drop_tot++;
     // ASSERT(false, "Not Implemented yet"); 
   }
   return DB_SUCCESS;

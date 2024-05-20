@@ -389,7 +389,11 @@ dberr_t ExecuteEngine::ExecuteCreateTable(pSyntaxNode ast, ExecuteContext *conte
   auto schema = new Schema(columns,true); 
   //TODO:txn here.
   TableInfo* table_info;
-  return catalog_manager->CreateTable(table_name,schema,nullptr,table_info);
+  auto exe_info = catalog_manager->CreateTable(table_name,schema,nullptr,table_info);
+  if(exe_info==DB_SUCCESS){
+    cout<<"Successfully create table"<<endl;
+  }
+  return exe_info;
 }
 
 /**
@@ -404,7 +408,11 @@ dberr_t ExecuteEngine::ExecuteDropTable(pSyntaxNode ast, ExecuteContext *context
     return DB_FAILED;
   }
   auto catalog_manager = dbs_[current_db_]->catalog_mgr_;
-  return catalog_manager->DropTable(ast->child_->val_);
+  auto exe_info = catalog_manager->DropTable(ast->child_->val_);
+  if(exe_info==DB_SUCCESS){
+    cout<<"Successfully drop table"<<endl;
+  }
+  return exe_info;
 }
 
 /**
@@ -466,10 +474,10 @@ dberr_t ExecuteEngine::ExecuteCreateIndex(pSyntaxNode ast, ExecuteContext *conte
   auto index_name = ast->child_->val_;
   auto table_name = ast->child_->next_->val_;
   auto index_keys = ast->child_->next_->next_;
-  string index_type = "btree";
+  string index_type = "bptree";
   if(index_keys->next_!=nullptr)index_type = index_keys->next_->child_->val_;
-  if(string(index_type)!="btree"){
-    cout<<"unsupported index type of "<<index_type<<endl;
+  if(string(index_type)!="bptree"){
+    cout<<"unsupported index type of "<<index_type<<"(now only support bptree)"<<endl;
     return DB_FAILED;
   }
   vector<std::string>index_keys_array;
@@ -480,7 +488,11 @@ dberr_t ExecuteEngine::ExecuteCreateIndex(pSyntaxNode ast, ExecuteContext *conte
   }
   IndexInfo* index_info;
   //TODO: Transaction txn
-  return catalog_manager->CreateIndex(table_name,index_name,index_keys_array,nullptr,index_info,index_type);
+  auto exe_info = catalog_manager->CreateIndex(table_name,index_name,index_keys_array,nullptr,index_info,index_type);
+  if(exe_info==DB_SUCCESS){
+    cout<<"Successfully create index"<<endl;
+  }
+  return exe_info;
 }
 
 /**
@@ -496,8 +508,12 @@ dberr_t ExecuteEngine::ExecuteDropIndex(pSyntaxNode ast, ExecuteContext *context
   }
   auto catalog_manager = dbs_[current_db_]->catalog_mgr_;
   string index_name = string(ast->child_->val_);
-  catalog_manager->DropAllIndexes(index_name);
-  return DB_FAILED;
+  uint32_t drop_tot=0;
+  auto exe_info = catalog_manager->DropAllIndexes(index_name,drop_tot);
+    if(exe_info==DB_SUCCESS){
+    cout<<"Successfully drop "<<drop_tot<<" index"<<endl;
+  }
+  return exe_info;
 }
 
 dberr_t ExecuteEngine::ExecuteTrxBegin(pSyntaxNode ast, ExecuteContext *context) {
@@ -565,9 +581,11 @@ dberr_t ExecuteEngine::ExecuteExecfile(pSyntaxNode ast, ExecuteContext *context)
         printf("%s\n", MinisqlParserGetErrorMessage());
       } else {
         // Comment them out if you don't need to debug the syntax tree
+        #ifdef ENABLE_SYNTAX_DEBUG
         printf("[INFO] Sql syntax parse ok!\n");
         SyntaxTreePrinter printer(MinisqlGetParserRootNode());
         printer.PrintTree(syntax_tree_file_mgr[syntax_tree_id++]);
+        #endif
       }
 
       auto result = Execute(MinisqlGetParserRootNode());
@@ -580,9 +598,11 @@ dberr_t ExecuteEngine::ExecuteExecfile(pSyntaxNode ast, ExecuteContext *context)
       // quit condition
       ExecuteInformation(result);
       if (result == DB_QUIT) {
-        break;
+        exit(0);
       }
     }
+    cout<<"Successfully execute all the command in the file!"<<endl;
+    return DB_SUCCESS;
   }
   else return DB_FAILED;
 }

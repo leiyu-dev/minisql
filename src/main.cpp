@@ -31,6 +31,7 @@ void InputCommand(char *input, const int len) {
   getchar();      // remove enter
 }
 #define ENABLE_EXECUTE_DEBUG
+#define ENABLE_SYNTAX_DEBUG
 
 int main(int argc, char **argv) {
   InitGoogleLog(argv[0]);
@@ -66,9 +67,11 @@ int main(int argc, char **argv) {
       printf("%s\n", MinisqlParserGetErrorMessage());
     } else {
       // Comment them out if you don't need to debug the syntax tree
+      #ifdef ENABLE_SYNTAX_DEBUG
       printf("[INFO] Sql syntax parse ok!\n");
       SyntaxTreePrinter printer(MinisqlGetParserRootNode());
       printer.PrintTree(syntax_tree_file_mgr[syntax_tree_id++]);
+      #endif
     }
 
     auto result = engine.Execute(MinisqlGetParserRootNode());
