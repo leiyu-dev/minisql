@@ -34,7 +34,7 @@ TEST_F(RecoveryManagerTest, RecoveryTest) {
   /*--------- CheckPoint ---------*/
 
   auto d4 = CreateInsertLog(1, "C", 600);  // <T1, C, -, 600>
-  auto d5 = CreateCommitLog(1);            // <T1 Commit>
+  auto d5 = CreateCommitLog(1);            // <T1 0>0
   ASSERT_EQ(d3->lsn_, d4->prev_lsn_);
   ASSERT_EQ(d4->lsn_, d5->prev_lsn_);
 
