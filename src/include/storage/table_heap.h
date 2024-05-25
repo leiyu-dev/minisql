@@ -22,6 +22,16 @@ class TableHeap {
     return new TableHeap(buffer_pool_manager, first_page_id, schema, log_manager, lock_manager);
   }
 
+    // 获取 TablePage
+    TablePage* FetchPage(page_id_t page_id) const {
+        return reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(page_id));
+    }
+
+    // 取消页面的固定
+    void UnpinPage(page_id_t page_id, bool is_dirty) const {
+        buffer_pool_manager_->UnpinPage(page_id, is_dirty);
+    }
+
   ~TableHeap() {}
 
   /**
@@ -114,6 +124,9 @@ class TableHeap {
         log_manager_(log_manager),
         lock_manager_(lock_manager) {
 //    ASSERT(false, "Not implemented yet.");
+      TablePage* true_page = reinterpret_cast<TablePage*>(buffer_pool_manager->NewPage(first_page_id_));//初始化新获得数据页
+      true_page->Init(first_page_id_ ,INVALID_PAGE_ID,log_manager_, nullptr);
+      buffer_pool_manager->UnpinPage(first_page_id_,true);
   };
 
   explicit TableHeap(BufferPoolManager *buffer_pool_manager, page_id_t first_page_id, Schema *schema,

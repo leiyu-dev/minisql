@@ -108,7 +108,8 @@ class Row {
   inline size_t GetFieldCount() const { return fields_.size(); }
 
  private:
-  RowId rid_{};
+    static const uint32_t ROW_MAGIC_NUM = 0x12345678;
+    RowId rid_{};
   std::vector<Field *> fields_; /** Make sure that all field ptr are destructed*/
 };
 

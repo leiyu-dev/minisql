@@ -10,9 +10,9 @@ class Column {
   friend class Schema;
 
  public:
-  Column(std::string column_name, TypeId type, uint32_t index, bool nullable, bool unique); //non-char
+  Column(std::string column_name, TypeId type, uint32_t index, bool nullable, bool unique);
 
-  Column(std::string column_name, TypeId type, uint32_t length, uint32_t index, bool nullable, bool unique);//char
+  Column(std::string column_name, TypeId type, uint32_t length, uint32_t index, bool nullable, bool unique);
 
   Column(const Column *other);
 
