@@ -74,4 +74,6 @@ TEST(BPlusTreeTests, BPlusTreeIndexSimpleTest) {
     i++;
   }
   delete index;
+  delete disk_mgr_;
+  delete bpm_;
 }
