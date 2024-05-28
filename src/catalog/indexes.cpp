@@ -8,8 +8,8 @@ IndexMetadata *IndexMetadata::Create(const index_id_t index_id, const string &in
                                      const vector<uint32_t> &key_map) {
   return new IndexMetadata(index_id, index_name, table_id, key_map);
 }
-
-uint32_t IndexMetadata::SerializeTo(char *buf) const {
+c :\Users\lenovo\AppData\Local\Temp\SGPicFaceTpBq\25860\03FFFAFA.png fsfs uint32_t
+    IndexMetadata::SerializeTo(char *buf) const {
   char *p = buf;
   uint32_t ofs = GetSerializedSize();
   ASSERT(ofs <= PAGE_SIZE, "Failed to serialize index info.");
@@ -43,27 +43,27 @@ uint32_t IndexMetadata::SerializeTo(char *buf) const {
  * TODO: Student Implement
  */
 uint32_t IndexMetadata::GetSerializedSize() const {
-  uint32_t ofs=0;
+  uint32_t ofs = 0;
   // magic num
-//  MACH_WRITE_UINT32(buf, INDEX_METADATA_MAGIC_NUM);
+  //  MACH_WRITE_UINT32(buf, INDEX_METADATA_MAGIC_NUM);
   ofs += 4;
   // index id
-//  MACH_WRITE_TO(index_id_t, buf, index_id_);
+  //  MACH_WRITE_TO(index_id_t, buf, index_id_);
   ofs += 4;
   // index name
-//  MACH_WRITE_UINT32(buf, index_name_.length());
+  //  MACH_WRITE_UINT32(buf, index_name_.length());
   ofs += 4;
-//  MACH_WRITE_STRING(buf, index_name_);
+  //  MACH_WRITE_STRING(buf, index_name_);
   ofs += index_name_.length();
   // table id
-//  MACH_WRITE_TO(table_id_t, buf, table_id_);
+  //  MACH_WRITE_TO(table_id_t, buf, table_id_);
   ofs += 4;
   // key count
-//  MACH_WRITE_UINT32(buf, key_map_.size());
+  //  MACH_WRITE_UINT32(buf, key_map_.size());
   ofs += 4;
   // key mapping in table
   for (auto &col_index : key_map_) {
-//    MACH_WRITE_UINT32(buf, col_index);
+    //    MACH_WRITE_UINT32(buf, col_index);
     ofs += 4;
   }
   return ofs;
