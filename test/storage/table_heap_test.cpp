@@ -44,6 +44,12 @@ TEST(TableHeapTest, TableHeapSampleTest) {
     }
     delete[] characters;
   }
+  for (auto iter = table_heap->Begin(nullptr); iter != table_heap->End(); iter++) {
+    auto row = *iter;
+    std::cout<<row.GetFields().size()<<endl;
+    /* do some things */
+  }
+
 
   ASSERT_EQ(row_nums, row_values.size());
   ASSERT_EQ(row_nums, size);
