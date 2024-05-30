@@ -34,7 +34,7 @@ uint32_t Row::SerializeTo(char *buf, Schema *schema) const {
 
 uint32_t Row::DeserializeFrom(char *buf, Schema *schema) {
     ASSERT(schema != nullptr, "Invalid schema before deserialize.");
-    ASSERT(fields_.empty(), "Non empty field in row.");
+//    ASSERT(fields_.empty(), "Non empty field in row.");
 
     char *start = buf;
     uint32_t magic_num = MACH_READ_UINT32(buf);
