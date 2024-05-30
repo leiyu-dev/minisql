@@ -10,13 +10,18 @@
 /**
  * TODO: Student Implement
  */
-BPlusTree::BPlusTree(index_id_t index_id, BufferPoolManager *buffer_pool_manager, const KeyManager &KM,
-                     int leaf_max_size, int internal_max_size)
+BPlusTree::BPlusTree(index_id_t index_id, BufferPoolManager *buffer_pool_manager, const KeyManager &KM,int leaf_max_size, int internal_max_size)
     : index_id_(index_id),
       buffer_pool_manager_(buffer_pool_manager),
-      processor_(KM),
-      leaf_max_size_(leaf_max_size),
-      internal_max_size_(internal_max_size) {}
+      processor_(KM){
+        auto leaf_max_size_cal = ( (PAGE_SIZE - LEAF_PAGE_HEADER_SIZE) / (sizeof(RowId)+KM.GetKeySize()) - 1);
+        auto internal_max_size_cal = ((PAGE_SIZE - INTERNAL_PAGE_HEADER_SIZE) / (sizeof(RowId)+KM.GetKeySize()) - 1);
+        if(leaf_max_size!=UNDEFINED_SIZE)leaf_max_size_ = leaf_max_size;
+        else leaf_max_size_ = leaf_max_size_cal;
+
+        if(internal_max_size!=UNDEFINED_SIZE)internal_max_size_ = internal_max_size;
+        else internal_max_size_ = internal_max_size_cal;
+      }
 
 void BPlusTree::Destroy(page_id_t current_page_id) {
   if (current_page_id == INVALID_PAGE_ID) {

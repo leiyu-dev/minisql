@@ -52,6 +52,9 @@ TEST(BPlusTreeTests, SampleTest) {
   vector<RowId> ans;
   for (int i = 0; i < n; i++) {
     tree.GetValue(keys_copy[i], ans);
+    if(!(kv_map[keys_copy[i]]==ans[i])){
+      LOG(ERROR)<<"NO"<<endl;
+    }
     ASSERT_EQ(kv_map[keys_copy[i]], ans[i]);
   }
   ASSERT_TRUE(tree.Check());

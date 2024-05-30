@@ -32,6 +32,7 @@ class KeyManager {
   }
 
   // compare
+  //l<h -> -1 ; l>h -> +1 ; l==h -> 0
   [[nodiscard]] inline int CompareKeys(const GenericKey *lhs, const GenericKey *rhs) const {
     //    ASSERT(malloc_usable_size((void *)&lhs) == malloc_usable_size((void *)&rhs), "key size not match.");
     uint32_t column_count = key_schema_->GetColumnCount();

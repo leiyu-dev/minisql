@@ -69,6 +69,7 @@ void InternalPage::PairCopy(void *dest, void *src, int pair_num) {
  */
 page_id_t InternalPage::Lookup(const GenericKey *key, const KeyManager &KM) {
   int left = 1;  // The first key is invalid
+  //TODO:left=1? right? ValueAt?
   int right = GetSize() - 1;
   while (left <= right) {
     int mid = (left + right) / 2;
