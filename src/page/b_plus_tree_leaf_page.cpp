@@ -182,9 +182,15 @@ int LeafPage::RemoveAndDeleteRecord(const GenericKey *key, const KeyManager &KM)
  * to update the next_page id in the sibling page
  */
 void LeafPage::MoveAllTo(LeafPage *recipient) {
-  recipient->CopyNFrom(PairPtrAt(0), GetSize());
-  SetSize(0);
-  recipient->SetNextPageId(GetNextPageId());
+  // if (this->next_page_id_ == recipient->GetPageId()) {
+  this->CopyNFrom(recipient->PairPtrAt(0), recipient->GetSize());
+  recipient->SetSize(0);
+  this->SetNextPageId(recipient->GetNextPageId());
+  this->IncreaseSize(recipient->GetSize());
+  // }
+  // recipient->CopyNFrom(PairPtrAt(0), GetSize());
+  // SetSize(0);
+  // recipient->SetNextPageId(GetNextPageId());
 }
 
 /*****************************************************************************

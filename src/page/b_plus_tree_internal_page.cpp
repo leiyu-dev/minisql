@@ -68,18 +68,32 @@ void InternalPage::PairCopy(void *dest, void *src, int pair_num) {
  * 用了二分查找
  */
 page_id_t InternalPage::Lookup(const GenericKey *key, const KeyManager &KM) {
-  int left = 1;  // The first key is invalid
-  //TODO:left=1? right? ValueAt?
-  int right = GetSize() - 1;
-  while (left <= right) {
-    int mid = (left + right) / 2;
-    if (KM.CompareKeys(KeyAt(mid), key) < 0) {
-      left = mid + 1;
-    } else {
-      right = mid - 1;
+  // int left = 1;  // The first key is invalid
+  // //TODO:left=1? right? ValueAt?
+  // int right = GetSize() - 1;
+  // while (left <= right) {
+  //   int mid = (left + right) / 2;
+  //   if (KM.CompareKeys(KeyAt(mid), key) == 0) {
+  //     return ValueAt(mid);
+  //   }
+  //   if (KM.CompareKeys(KeyAt(mid), key) < 0) {
+  //     left = mid + 1;
+  //   } else {
+  //     right = mid - 1;
+  //   }
+  // }
+  // return ValueAt(left - 1);
+  if (KM.CompareKeys(KeyAt(1), key) > 0) {
+    return ValueAt(0);
+  }
+  if (KM.CompareKeys(KeyAt(GetSize() - 1), key) <= 0) {
+    return ValueAt(GetSize() - 1);
+  }
+  for (int i = 1; i < GetSize() - 1; i++) {
+    if (KM.CompareKeys(KeyAt(i), key) <= 0 && KM.CompareKeys(KeyAt(i + 1), key) > 0) {
+      return ValueAt(i);
     }
   }
-  return ValueAt(left - 1);
 }
 
 /*****************************************************************************
@@ -159,6 +173,7 @@ void InternalPage::CopyNFrom(void *src, int size, BufferPoolManager *buffer_pool
  */
 void InternalPage::Remove(int index) {
   int size = GetSize();
+
   for (int i = index; i < size - 1; ++i) {
     memcpy(PairPtrAt(i), PairPtrAt(i + 1), pair_size);
   }
