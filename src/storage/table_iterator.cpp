@@ -69,20 +69,29 @@ void TableIterator::MoveToNextTuple() {
   if (page_ == nullptr) {
     return;
   }
+  bool first_slot=false;
   while (true) {
     // 移动到当前页面中的下一条记录
-    rid_ = RowId(rid_.GetPageId(), rid_.GetSlotNum() + 1);
+    if(!first_slot)rid_ = RowId(rid_.GetPageId(), rid_.GetSlotNum() + 1);
+    first_slot = false;
     // 检查是否到达页面中的记录末尾
     if (rid_.GetSlotNum() < page_->GetTupleCount()) {
       // 如果槽位不是空闲的，则找到下一条有效记录
-      if (!page_->IsDeleted(rid_.GetSlotNum())) {
+      if (!page_->IsDeleted(page_->GetTupleSize(rid_.GetSlotNum()))) {
+#ifdef ENABLE_TABLEHEAP_ITER_DEBUG
+        LOG(INFO)<<"GET "<<rid_.GetPageId()<<' '<<rid_.GetSlotNum()<<endl;
+#endif
         row_->SetRowId(rid_);
         table_heap_->GetTuple(row_, txn_);
+        table_heap_->UnpinPage(page_->GetPageId(),false);//forget unpin
         break;
       }
     } else {
       // 移动到下一页
       page_id_t next_page_id = page_->GetNextPageId();
+#ifdef ENABLE_TABLEHEAP_ITER_DEBUG
+      LOG(INFO)<<"COME TO NEXT PAGE"<<endl;
+#endif
       if (next_page_id == INVALID_PAGE_ID) {
         // 没有更多页面，迭代器到达末尾
         page_ = nullptr;
@@ -93,6 +102,7 @@ void TableIterator::MoveToNextTuple() {
       table_heap_->UnpinPage(page_->GetPageId(), false);
       page_ = table_heap_->FetchPage(next_page_id);
       rid_ = RowId(next_page_id, 0);
+      first_slot = true;
     }
   }
 }

@@ -48,5 +48,5 @@ int IndexRootsPage::FindIndex(const index_id_t index_id) {
       return i;
     }
   }
-  return -1;
+  return INVALID_PAGE_ID;
 }

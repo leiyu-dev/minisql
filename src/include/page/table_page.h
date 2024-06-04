@@ -66,7 +66,11 @@ class TablePage : public Page {
 
     uint32_t GetTupleCount() { return *reinterpret_cast<uint32_t *>(GetData() + OFFSET_TUPLE_COUNT); }
 
-private:
+    uint32_t GetTupleSize(uint32_t slot_num) {
+      return *reinterpret_cast<uint32_t *>(GetData() + OFFSET_TUPLE_SIZE + SIZE_TUPLE * slot_num);
+    }
+
+   private:
   uint32_t GetFreeSpacePointer() { return *reinterpret_cast<uint32_t *>(GetData() + OFFSET_FREE_SPACE); }
 
   void SetFreeSpacePointer(uint32_t free_space_pointer) {
@@ -85,10 +89,6 @@ private:
 
   void SetTupleOffsetAtSlot(uint32_t slot_num, uint32_t offset) {
     memcpy(GetData() + OFFSET_TUPLE_OFFSET + SIZE_TUPLE * slot_num, &offset, sizeof(uint32_t));
-  }
-
-  uint32_t GetTupleSize(uint32_t slot_num) {
-    return *reinterpret_cast<uint32_t *>(GetData() + OFFSET_TUPLE_SIZE + SIZE_TUPLE * slot_num);
   }
 
   void SetTupleSize(uint32_t slot_num, uint32_t size) {

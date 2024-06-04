@@ -153,6 +153,20 @@ dberr_t CatalogManager::CreateTable(const string &table_name, TableSchema *schem
 
   //write it into disk
   table_meta->SerializeTo(table_meta_page->GetData());
+
+  //Create primary key's bptree index
+  for(auto i:schema->GetColumns()){
+      if(i->IsUnique()){
+        std::vector<string>index_keys;
+        IndexInfo* index_info;
+        index_keys.emplace_back(i->GetName());
+        //todo:transaction
+        CreateIndex(table_name,i->GetName()+"_unique_index",index_keys, nullptr ,index_info,"bptree");
+      }
+  }
+
+
+
   return DB_SUCCESS;
 }
 
@@ -189,6 +203,8 @@ dberr_t CatalogManager::GetTables(vector<TableInfo *> &tables) const {
 
 /**
  * TODO: Student Implement
+ * Only support "bptree" type now
+ * the index_info will be created in this function,you just need to pass a pointer
  */
 dberr_t CatalogManager::CreateIndex(const std::string &table_name, const string &index_name,
                                     const std::vector<std::string> &index_keys, Txn *txn, IndexInfo *&index_info,
@@ -209,7 +225,7 @@ dberr_t CatalogManager::CreateIndex(const std::string &table_name, const string 
 //  auto& index_map = index_names_.find(table_name)->second;
 //  if(index_map==index_map2)cout<<"ok"<<endl;
   //solved :: unknown error : index_map = index_names_.find(table_name).second
-  //index_names_ is not consistent with index_names_ when index in a table is empty
+  //table_names_ is not consistent with index_names_ when index in a table is empty
 
   if(index_map.find(index_name)!=index_map.end()){
     LOG(INFO)<<"Duplicated index name"<<endl;

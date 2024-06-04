@@ -16,7 +16,7 @@ TEST(TableHeapTest, TableHeapSampleTest) {
   // init testing instance
   auto disk_mgr_ = new DiskManager(db_file_name);
   auto bpm_ = new BufferPoolManager(DEFAULT_BUFFER_POOL_SIZE, disk_mgr_);
-  const int row_nums = 10;
+  const int row_nums = 5000;
   // create schema
   std::vector<Column *> columns = {new Column("id", TypeId::kTypeInt, 0, false, false),
                                    new Column("name", TypeId::kTypeChar, 64, 1, true, false),
@@ -44,12 +44,19 @@ TEST(TableHeapTest, TableHeapSampleTest) {
     }
     delete[] characters;
   }
+  int tot=0;
   for (auto iter = table_heap->Begin(nullptr); iter != table_heap->End(); iter++) {
     auto row = *iter;
-    std::cout<<row.GetFields().size()<<endl;
+    auto f500 = Field(TypeId::kTypeInt,500);
+    if(row.GetField(0)->CompareLessThan(f500)) {
+      cout << row.GetField(0)->toString() << endl;
+      tot++;
+    }
+    else break;
+    }
+//    std::cout<<row.GetFields().size()<<endl;
     /* do some things */
-  }
-
+  ASSERT_EQ(tot,500);
 
   ASSERT_EQ(row_nums, row_values.size());
   ASSERT_EQ(row_nums, size);

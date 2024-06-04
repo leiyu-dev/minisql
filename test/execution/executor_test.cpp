@@ -23,7 +23,9 @@ TEST_F(ExecutorTest, SimpleSeqScanTest) {
   // Execute
   std::vector<Row> result_set{};
   GetExecutionEngine()->ExecutePlan(plan, &result_set, GetTxn(), GetExecutorContext());
-
+//  for(auto i:result_set){
+//    cout<<i.GetField(0)->toString()<<endl;
+//  }
   // Verify
   ASSERT_EQ(result_set.size(), 500);
   for (const auto &row : result_set) {

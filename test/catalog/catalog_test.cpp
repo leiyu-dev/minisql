@@ -109,6 +109,7 @@ TEST(CatalogTest, CatalogIndexTest) {
     ASSERT_EQ(rid.Get(), ret[i].Get());
   }
   delete db_01;
+  index_info= nullptr;
   /** Stage 2: Testing catalog loading */
   auto db_02 = new DBStorageEngine(db_file_name, false);
   auto &catalog_02 = db_02->catalog_mgr_;
