@@ -34,6 +34,10 @@ class Column {
 
   uint32_t GetSerializedSize() const;
 
+  void SetNullable(bool nullable){nullable_ = nullable;}
+
+  void SetUnique(bool is_unique){unique_ = is_unique;}
+
   static uint32_t DeserializeFrom(char *buf, Column *&column);
 
  private:

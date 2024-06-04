@@ -16,6 +16,8 @@
 #include "glog/logging.h"
 #include "planner/planner.h"
 #include "utils/utils.h"
+#define CREATE_NEW_FILE
+
 
 ExecuteEngine::ExecuteEngine() {
   char path[] = "./databases";
@@ -26,7 +28,9 @@ ExecuteEngine::ExecuteEngine() {
   }
   /** When you have completed all the code for
    *  the test, run it using main.cpp and uncomment
-   *  this part of the code.
+   *  this part of the code.**/
+#ifndef CREATE_NEW_FILE
+  LOG(INFO)<<"Do not use new file"<<endl;
   struct dirent *stdir;
   while((stdir = readdir(dir)) != nullptr) {
     if( strcmp( stdir->d_name , "." ) == 0 ||
@@ -35,7 +39,7 @@ ExecuteEngine::ExecuteEngine() {
       continue;
     dbs_[stdir->d_name] = new DBStorageEngine(stdir->d_name, false);
   }
-   **/
+#endif
   closedir(dir);
 }
 
@@ -354,6 +358,9 @@ dberr_t ExecuteEngine::ExecuteCreateTable(pSyntaxNode ast, ExecuteContext *conte
   int column_id=0;//TODO:column begins with 0 here.
   def = def->child_;
   while(def!=nullptr){
+    if(def->val_!=nullptr&&string(def->val_)=="primary keys"){
+      break;
+    }
     auto column_name = def->child_->val_;
     auto column_type_raw = def->child_->next_->val_;
     TypeId column_type;
@@ -364,10 +371,6 @@ dberr_t ExecuteEngine::ExecuteCreateTable(pSyntaxNode ast, ExecuteContext *conte
       if(string(def->val_)=="unique"){
         unique=true;
         nullable=false;//TODO:maybe can be true?
-      }
-      if(string(def->val_)=="primary keys"){
-        unique=true;
-        nullable=false;
       }
     }
     if(string(column_type_raw)=="int")column_type = kTypeInt;
@@ -385,6 +388,16 @@ dberr_t ExecuteEngine::ExecuteCreateTable(pSyntaxNode ast, ExecuteContext *conte
 
     column_id++;
     def=def->next_;
+  }
+  if(def->val_!=nullptr&&string(def->val_)=="primary keys"){
+    auto key_name = string(def->child_->val_);
+    for(auto column : columns){
+      if(column->GetName()==key_name){
+        column->SetNullable(false);
+        column->SetUnique(true);
+        break;
+      }
+    }
   }
   auto schema = new Schema(columns,true); 
   //TODO:txn here.
@@ -556,7 +569,7 @@ dberr_t ExecuteEngine::ExecuteExecfile(pSyntaxNode ast, ExecuteContext *context)
 #endif
   string file_name = ast->child_->val_;
   string cmd;
-  std::ifstream file("example.txt");
+  std::ifstream file(file_name);
   TreeFileManagers syntax_tree_file_mgr("syntax_tree_file_");
   uint32_t syntax_tree_id=0;
   if(file.is_open()){

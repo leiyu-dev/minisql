@@ -22,6 +22,7 @@ void InitGoogleLog(char *argv) {
 void InputCommand(char *input, const int len) {
   memset(input, 0, len);
   printf("minisql > ");
+//  fflush(stdout);
   int i = 0;
   char ch;
   while ((ch = getchar()) != ';') {
@@ -31,9 +32,9 @@ void InputCommand(char *input, const int len) {
   getchar();      // remove enter
 }
 #define ENABLE_EXECUTE_DEBUG
-#define ENABLE_SYNTAX_DEBUG
-
+//#define ENABLE_SYNTAX_DEBUG
 int main(int argc, char **argv) {
+  setbuf(stdout,NULL);
   InitGoogleLog(argv[0]);
   // command buffer
   const int buf_size = 1024;
