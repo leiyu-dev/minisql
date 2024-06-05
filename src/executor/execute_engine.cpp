@@ -552,6 +552,7 @@ dberr_t ExecuteEngine::ExecuteTrxRollback(pSyntaxNode ast, ExecuteContext *conte
 
 /**
  * TODO: Student Implement finished
+ * Warning: please
  */
 
 
@@ -563,19 +564,34 @@ extern FILE *yyin;
 }
 #include <parser/syntax_tree_printer.h>
 #include <utils/tree_file_mgr.h>
+void InputFileCommand(char *input, const int len,std::ifstream& file) {
+  memset(input, 0, len);
+//  printf("minisql > ");
+  //  fflush(stdout);
+  int i = 0;
+  char ch;
+  while ((ch = file.get()) != ';') {
+    if(file.eof())return;
+    input[i++] = ch;
+  }
+  input[i] = ch;  // ;
+  file.get();      // remove enter
+}
 dberr_t ExecuteEngine::ExecuteExecfile(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteExecfile" << std::endl;
 #endif
   string file_name = ast->child_->val_;
-  string cmd;
-  std::ifstream file(file_name);
+  const int buf_size = 1024;
+  char cmd[buf_size];
+  std::ifstream file(file_name,std::ifstream::in);
   TreeFileManagers syntax_tree_file_mgr("syntax_tree_file_");
   uint32_t syntax_tree_id=0;
   if(file.is_open()){
-    while(getline(file,cmd))
+    while(!file.eof())
     {
-      YY_BUFFER_STATE bp = yy_scan_string(cmd.c_str());
+      InputFileCommand(cmd, buf_size, file);
+      YY_BUFFER_STATE bp = yy_scan_string(cmd);
       if (bp == nullptr) {
         LOG(ERROR) << "Failed to create yy buffer state." << std::endl;
         exit(1);

@@ -443,8 +443,10 @@ IndexIterator BPlusTree::Begin() {
  */
 IndexIterator BPlusTree::Begin(const GenericKey *key) {
   Page *page = FindLeafPage(key);
-  int index = reinterpret_cast<LeafPage *>(page->GetData())->KeyIndex(key, processor_);
-  return IndexIterator(page->GetPageId(), buffer_pool_manager_, index);
+  auto leaf_page = reinterpret_cast<LeafPage *>(page->GetData());
+  int index = leaf_page->KeyIndex(key, processor_);
+  if(index==leaf_page->GetSize())return End();
+  else return IndexIterator(page->GetPageId(), buffer_pool_manager_, index);
 }
 
 /*

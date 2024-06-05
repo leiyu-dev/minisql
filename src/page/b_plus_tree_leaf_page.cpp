@@ -53,16 +53,16 @@ void LeafPage::SetNextPageId(page_id_t next_page_id) {
  */
 int LeafPage::KeyIndex(const GenericKey *key, const KeyManager &KM) {
   int left = 0;
-  int right = GetSize() - 1;
-  while (left <= right) {
+  int right = GetSize();//指向的是最后一个元素的后面
+  while (left < right) {
     int mid = (left + right) / 2;
     if (KM.CompareKeys(KeyAt(mid), key) < 0) {
       left = mid + 1;
     } else {
-      right = mid - 1;
+      right = mid;
     }
   }
-  return left;
+  return right;
 }
 
 /*
