@@ -6,6 +6,7 @@
 #include "index/basic_comparator.h"
 #include "index/generic_key.h"
 #include "page/index_roots_page.h"
+#include "common/config.h"
 
 /**
  * TODO: Student Implement
@@ -253,7 +254,9 @@ void BPlusTree::Remove(const GenericKey *key, Txn *transaction) {
   if (IsEmpty()) {
     return;
   }
+#ifdef ENABLE_INDEX_DEBUG
   std::cout << "root_page_id: " << root_page_id_ << std::endl;
+#endif
   Page *page = FindLeafPage(key);
   if (page == nullptr) {
     return;
@@ -261,7 +264,9 @@ void BPlusTree::Remove(const GenericKey *key, Txn *transaction) {
   LeafPage *leaf = reinterpret_cast<LeafPage *>(page->GetData());
   leaf->RemoveAndDeleteRecord(key, processor_);
   if (leaf->GetSize() < leaf->GetMinSize()) {
+#ifdef ENABLE_INDEX_DEBUG
     std::cout << "<" << endl;
+#endif
     CoalesceOrRedistribute(leaf, transaction);
   }
   buffer_pool_manager_->UnpinPage(leaf->GetPageId(), true);
@@ -317,9 +322,10 @@ bool BPlusTree::Coalesce(LeafPage *&neighbor_node, LeafPage *&node, InternalPage
     std::swap(neighbor_node, node);
     index = 1;
   }
+#ifdef ENABLE_INDEX_DEBUG
   std::cout << "neighbor_node: " << neighbor_node->GetPageId() << std::endl;
   std::cout << "node: " << node->GetPageId() << std::endl;
-
+#endif
   node->MoveAllTo(neighbor_node);
   buffer_pool_manager_->UnpinPage(neighbor_node->GetPageId(), false);
   buffer_pool_manager_->DeletePage(neighbor_node->GetPageId());
@@ -433,6 +439,12 @@ bool BPlusTree::AdjustRoot(BPlusTreePage *old_root_node) {
  */
 IndexIterator BPlusTree::Begin() {
   Page *page = FindLeafPage(nullptr, root_page_id_, true);
+  if(page == nullptr){
+#ifdef ENABLE_INDEX_DEBUG
+    LOG(INFO)<<"get a null begin iterator"<<endl;
+#endif
+    return End();
+  }
   return IndexIterator(page->GetPageId(), buffer_pool_manager_, 0);
 }
 
@@ -443,6 +455,7 @@ IndexIterator BPlusTree::Begin() {
  */
 IndexIterator BPlusTree::Begin(const GenericKey *key) {
   Page *page = FindLeafPage(key);
+  if(page == nullptr)return End();
   auto leaf_page = reinterpret_cast<LeafPage *>(page->GetData());
   int index = leaf_page->KeyIndex(key, processor_);
   if(index==leaf_page->GetSize())return End();

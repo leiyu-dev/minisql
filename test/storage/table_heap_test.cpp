@@ -16,7 +16,7 @@ TEST(TableHeapTest, TableHeapSampleTest) {
   // init testing instance
   auto disk_mgr_ = new DiskManager(db_file_name);
   auto bpm_ = new BufferPoolManager(DEFAULT_BUFFER_POOL_SIZE, disk_mgr_);
-  const int row_nums = 5000;
+  const int row_nums = 50000;
   // create schema
   std::vector<Column *> columns = {new Column("id", TypeId::kTypeInt, 0, false, false),
                                    new Column("name", TypeId::kTypeChar, 64, 1, true, false),
@@ -44,12 +44,13 @@ TEST(TableHeapTest, TableHeapSampleTest) {
     }
     delete[] characters;
   }
+
   int tot=0;
   for (auto iter = table_heap->Begin(nullptr); iter != table_heap->End(); iter++) {
     auto row = *iter;
     auto f500 = Field(TypeId::kTypeInt,500);
     if(row.GetField(0)->CompareLessThan(f500)) {
-      cout << row.GetField(0)->toString() << endl;
+//      cout << row.GetField(0)->toString() << endl;
       tot++;
     }
     else break;
@@ -60,8 +61,18 @@ TEST(TableHeapTest, TableHeapSampleTest) {
 
   ASSERT_EQ(row_nums, row_values.size());
   ASSERT_EQ(row_nums, size);
-  for (auto row_kv : row_values) {
-    size--;
+  pair<int64_t, Fields *> row_v[size+5];
+  int cnt=0;
+
+  //random search in the table
+  for (auto row_kv : row_values)row_v[++cnt]=row_kv;
+  int order[size+5];
+  for(int i=1;i<=size;i++)order[i]=i;
+  random_shuffle(order+1,order+size+1);
+  int tot_size = size;
+    for (int i=1;i<=size;i++) {
+    auto row_kv = row_v[i];
+    tot_size--;
     Row row(RowId(row_kv.first));
     table_heap->GetTuple(&row, nullptr);
     ASSERT_EQ(schema.get()->GetColumnCount(), row.GetFields().size());
@@ -71,5 +82,5 @@ TEST(TableHeapTest, TableHeapSampleTest) {
     // free spaces
     delete row_kv.second;
   }
-  ASSERT_EQ(size, 0);
+  ASSERT_EQ(tot_size, 0);
 }
