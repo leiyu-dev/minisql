@@ -178,10 +178,10 @@ int LeafPage::RemoveAndDeleteRecord(const GenericKey *key, const KeyManager &KM)
  * MERGE
  *****************************************************************************/
 /*
- * Remove all key & value pairs from this page to "recipient" page. Don't forget
+ * Remove all key & value pairs from "recipient" page to this page. Don't forget
  * to update the next_page id in the sibling page
  */
-void LeafPage::MoveAllTo(LeafPage *recipient) {
+void LeafPage::MoveAllFrom(LeafPage *recipient) {
   // if (this->next_page_id_ == recipient->GetPageId()) {
   this->CopyNFrom(recipient->PairPtrAt(0), recipient->GetSize());
   recipient->SetSize(0);
