@@ -16,8 +16,6 @@
 #include "glog/logging.h"
 #include "planner/planner.h"
 #include "utils/utils.h"
-#include "common/config.h"
-
 #define CREATE_NEW_FILE
 
 
@@ -357,8 +355,6 @@ dberr_t ExecuteEngine::ExecuteCreateTable(pSyntaxNode ast, ExecuteContext *conte
     LOG(WARNING)<<"A table must have at least 1 column"<<endl;
     return DB_FAILED;
   }
-
-  //get columns
   int column_id=0;//TODO:column begins with 0 here.
   def = def->child_;
   while(def!=nullptr){
@@ -371,21 +367,20 @@ dberr_t ExecuteEngine::ExecuteCreateTable(pSyntaxNode ast, ExecuteContext *conte
     uint32_t length=0;
     bool nullable=true;
     bool unique=false;
-
     if(def->val_!=nullptr){
       if(string(def->val_)=="unique"){
         unique=true;
         nullable=false;//TODO:maybe can be true?
       }
     }
-
     if(string(column_type_raw)=="int")column_type = kTypeInt;
     if(string(column_type_raw)=="float")column_type = kTypeFloat;
+
     if(string(column_type_raw)=="char"){
       column_type = kTypeChar;
       length = atoi(def->child_->next_->child_->val_);
-    }
 
+    }
     Column* column;
     if(column_type==kTypeChar)column = new Column(column_name,column_type,length,column_id,nullable,unique);
     else column = new Column(column_name,column_type,column_id,nullable,unique);
@@ -394,31 +389,22 @@ dberr_t ExecuteEngine::ExecuteCreateTable(pSyntaxNode ast, ExecuteContext *conte
     column_id++;
     def=def->next_;
   }
-
-  //处理主键
-  Column* primary_column;
   if(def->val_!=nullptr&&string(def->val_)=="primary keys"){
     auto key_name = string(def->child_->val_);
     for(auto column : columns){
       if(column->GetName()==key_name){
-        primary_column=column;
         column->SetNullable(false);
         column->SetUnique(true);
         break;
       }
     }
   }
-
   auto schema = new Schema(columns,true); 
   //TODO:txn here.
   TableInfo* table_info;
   auto exe_info = catalog_manager->CreateTable(table_name,schema,nullptr,table_info);
   if(exe_info==DB_SUCCESS){
     cout<<"Successfully create table"<<endl;
-#ifndef CREATE_INDEX_ON_UNIQUE
-    //TODO:not implemented yet
-//    catalog_manager->CreateIndex(table_name,)
-#endif
   }
   return exe_info;
 }

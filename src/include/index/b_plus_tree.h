@@ -67,7 +67,7 @@ class BPlusTree {
     out << "}" << std::endl;
   }
 
- private:
+ public:
   void StartNewTree(GenericKey *key, const RowId &value);
 
   bool InsertIntoLeaf(GenericKey *key, const RowId &value, Txn *transaction = nullptr);
@@ -107,6 +107,7 @@ class BPlusTree {
   KeyManager processor_;
   int leaf_max_size_;
   int internal_max_size_;
+  int sign_1 = 0;
 };
 
 #endif  // MINISQL_B_PLUS_TREE_H

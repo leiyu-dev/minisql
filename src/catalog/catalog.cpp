@@ -1,5 +1,5 @@
 #include "catalog/catalog.h"
-#include "common/config.h"
+
 void CatalogMeta::SerializeTo(char *buf) const {
   ASSERT(GetSerializedSize() <= PAGE_SIZE, "Failed to serialize catalog metadata to disk.");
   MACH_WRITE_UINT32(buf, CATALOG_METADATA_MAGIC_NUM);
@@ -154,8 +154,7 @@ dberr_t CatalogManager::CreateTable(const string &table_name, TableSchema *schem
   //write it into disk
   table_meta->SerializeTo(table_meta_page->GetData());
 
-  //Create unique key's bptree index
-#ifdef CREATE_INDEX_ON_UNIQUE
+  //Create primary key's bptree index
   for(auto i:schema->GetColumns()){
       if(i->IsUnique()){
         std::vector<string>index_keys;
@@ -165,7 +164,7 @@ dberr_t CatalogManager::CreateTable(const string &table_name, TableSchema *schem
         CreateIndex(table_name,i->GetName()+"_unique_index",index_keys, nullptr ,index_info,"bptree");
       }
   }
-#endif
+
 
 
   return DB_SUCCESS;

@@ -4,7 +4,6 @@
 #include "glog/logging.h"
 #include "parser/syntax_tree_printer.h"
 #include "utils/tree_file_mgr.h"
-#include "common/config.h"
 
 extern "C" {
 int yyparse(void);
@@ -32,7 +31,8 @@ void InputCommand(char *input, const int len) {
   input[i] = ch;  // ;
   getchar();      // remove enter
 }
-
+#define ENABLE_EXECUTE_DEBUG
+//#define ENABLE_SYNTAX_DEBUG
 int main(int argc, char **argv) {
   setbuf(stdout,NULL);
   InitGoogleLog(argv[0]);
