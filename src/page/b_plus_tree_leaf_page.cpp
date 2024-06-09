@@ -53,7 +53,7 @@ void LeafPage::SetNextPageId(page_id_t next_page_id) {
  */
 int LeafPage::KeyIndex(const GenericKey *key, const KeyManager &KM) {
   int left = 0;
-  int right = GetSize();//指向的是最后一个元素的后面
+  int right = GetSize();  // 指向的是最后一个元素的后面
   while (left < right) {
     int mid = (left + right) / 2;
     if (KM.CompareKeys(KeyAt(mid), key) < 0) {
@@ -121,6 +121,7 @@ int LeafPage::Insert(GenericKey *key, const RowId &value, const KeyManager &KM) 
 /*
  * Remove half of key & value pairs from this page to "recipient" page
  */
+// move the later half of this to recipient
 void LeafPage::MoveHalfTo(LeafPage *recipient) {
   int size = GetSize();
   int move_size = size / 2;
@@ -145,11 +146,22 @@ void LeafPage::CopyNFrom(void *src, int size) {
  * If the key does not exist, then return false
  */
 bool LeafPage::Lookup(const GenericKey *key, RowId &value, const KeyManager &KM) {
-  int index = KeyIndex(key, KM);
-  if (index < GetSize() && KM.CompareKeys(KeyAt(index), key) == 0) {
-    value = ValueAt(index);
-    return true;
+  // use binary search to find the index of the key
+  int left = 0;
+  int right = GetSize() - 1;
+  int index = (left + right) / 2;
+  while (left <= right) {
+    index = (left + right) / 2;
+    if (KM.CompareKeys(KeyAt(index), key) == 0) {
+      value = ValueAt(index);
+      return true;
+    } else if (KM.CompareKeys(KeyAt(index), key) < 0) {
+      left = index + 1;
+    } else {
+      right = index - 1;
+    }
   }
+
   return false;
 }
 
@@ -183,14 +195,15 @@ int LeafPage::RemoveAndDeleteRecord(const GenericKey *key, const KeyManager &KM)
  */
 void LeafPage::MoveAllTo(LeafPage *recipient) {
   // if (this->next_page_id_ == recipient->GetPageId()) {
-  this->CopyNFrom(recipient->PairPtrAt(0), recipient->GetSize());
-  recipient->SetSize(0);
-  this->SetNextPageId(recipient->GetNextPageId());
-  this->IncreaseSize(recipient->GetSize());
+  // this->CopyNFrom(recipient->PairPtrAt(0), recipient->GetSize());
+  // recipient->SetSize(0);
+  // this->SetNextPageId(recipient->GetNextPageId());
+  // this->IncreaseSize(recipient->GetSize());
   // }
-  // recipient->CopyNFrom(PairPtrAt(0), GetSize());
-  // SetSize(0);
-  // recipient->SetNextPageId(GetNextPageId());
+  recipient->CopyNFrom(PairPtrAt(0), GetSize());
+  SetSize(0);
+  recipient->SetNextPageId(GetNextPageId());
+  recipient->IncreaseSize(GetSize());
 }
 
 /*****************************************************************************
