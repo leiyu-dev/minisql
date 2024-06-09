@@ -2,7 +2,7 @@
 
 #include "glog/logging.h"
 #include "page/bitmap_page.h"
-
+#include "common/config.h"
 static const char EMPTY_PAGE_DATA[PAGE_SIZE] = {0};
 
 BufferPoolManager::BufferPoolManager(size_t pool_size, DiskManager *disk_manager)
@@ -26,7 +26,9 @@ BufferPoolManager::~BufferPoolManager() {
  * TODO: Student Implement
  */
 Page *BufferPoolManager::FetchPage(page_id_t page_id) {
-//  LOG(INFO)<<"fetch page"<<std::endl;
+#ifdef ENABLE_BUFFER_DEBUG
+  LOG(INFO)<<"fetch page of "<<page_id<<" "<<std::endl;
+#endif
   // 1.     Search the page table for the requested page (P).
   if(page_table_.find(page_id)!=page_table_.end()){
       frame_id_t frame_id=page_table_[page_id];
@@ -101,7 +103,11 @@ Page *BufferPoolManager::NewPage(page_id_t &page_id) {
   page->Pin();
   replacer_->Pin(frame_id);
   // 4.   Set the page ID output parameter. Return a pointer to P.
+#ifdef ENABLE_BUFFER_DEBUG
+  LOG(INFO)<<"new "<<page_id<<endl;
+#endif
   return page;
+
 }
 
 /**
@@ -133,12 +139,21 @@ bool BufferPoolManager::DeletePage(page_id_t page_id) {
  * TODO: Student Implement
  */
 bool BufferPoolManager::UnpinPage(page_id_t page_id, bool is_dirty) {
+#ifdef ENABLE_BUFFER_DEBUG
+  LOG(INFO)<<"unpin page "<<page_id<<endl;
+#endif
   if(page_table_.find(page_id)==page_table_.end()){
-    LOG(ERROR)<<"Unpin a unpinned page of "<<page_id<<std::endl;
+    LOG(ERROR)<<"Unpin an unpinned page of "<<page_id<<std::endl;
     return true;
   }
   auto frame_id = page_table_[page_id];
   auto page = pages_+frame_id;
+  if(page->pin_count_==0){
+#ifdef ENABLE_BUFFER_DEBUG
+    LOG(ERROR)<<"[2]Unpin an unpinned page of "<<page_id<<std::endl;
+#endif
+    return true;
+  }
   if(is_dirty)page->SetDirty();
   page->unPin();
   if(page->GetPinCount()==0){

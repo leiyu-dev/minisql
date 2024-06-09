@@ -8,7 +8,11 @@
 //#define ENABLE_INDEX_DEBUG
 //#define ENABLE_EXECUTE_DEBUG
 //#define ENABLE_SYNTAX_DEBUG
+//#define ENABLE_BUFFER_DEBUG
+
+//Not implemented yet. Cannot be commented!
 #define CREATE_INDEX_ON_UNIQUE
+
 
 static constexpr int INVALID_PAGE_ID = -1;   // invalid page id
 static constexpr int INVALID_FRAME_ID = -1;  // invalid recovery id

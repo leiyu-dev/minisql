@@ -66,10 +66,21 @@ class IndexInfo {
   void Init(IndexMetadata *meta_data, TableInfo *table_info, BufferPoolManager *buffer_pool_manager) {
     // Step1: init index metadata and table info
     meta_data_=meta_data;
+    this->table_info=table_info;
+    auto table_heap = table_info->GetTableHeap();
     // Step2: mapping index key to key schema
     key_schema_=Schema::ShallowCopySchema(table_info->GetSchema(),meta_data->GetKeyMapping());
     // Step3: call CreateIndex to create the index
     index_= CreateIndex(buffer_pool_manager,"bptree");
+    //todo:Transaction
+    for(auto iter=table_heap->Begin(nullptr);iter!=table_heap->End();iter++){
+      vector<Field>index_fields;
+      for(auto i : meta_data->key_map_){
+        index_fields.push_back(*(iter->GetField(i)));
+      }
+      Row row(index_fields);
+      index_->InsertEntry(row,iter->GetRowId(), nullptr);
+    }
 //    ASSERT(false, "Not Implemented yet.");
   }
 

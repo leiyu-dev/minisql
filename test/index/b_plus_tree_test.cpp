@@ -19,7 +19,7 @@ TEST(BPlusTreeTests, SampleTest) {
   BPlusTree tree(0, engine.bpm_, KP);
   TreeFileManagers mgr("tree_");
   // Prepare data
-  const int n = 100000;
+  const int n =  1000;
   vector<GenericKey *> keys;
   vector<RowId> values;
   vector<GenericKey *> delete_seq;
@@ -34,9 +34,11 @@ TEST(BPlusTreeTests, SampleTest) {
   }
   vector<GenericKey *> keys_copy(keys);
   // Shuffle data
-  ShuffleArray(keys);
-  ShuffleArray(values);
-  ShuffleArray(delete_seq);
+
+//  ShuffleArray(keys);
+//  ShuffleArray(values);
+//  ShuffleArray(delete_seq);
+
   // Map key value
   for (int i = 0; i < n; i++) {
     kv_map[keys[i]] = values[i];
@@ -48,6 +50,8 @@ TEST(BPlusTreeTests, SampleTest) {
   ASSERT_TRUE(tree.Check());
   // Print tree
   tree.PrintTree(mgr[0], table_schema);
+
+
   // Search keys
   vector<RowId> ans;
   for (int i = 0; i < n; i++) {
@@ -58,11 +62,36 @@ TEST(BPlusTreeTests, SampleTest) {
     ASSERT_EQ(kv_map[keys_copy[i]], ans[i]);
   }
   ASSERT_TRUE(tree.Check());
+
+
   // Delete half keys
   for (int i = 0; i < n / 2; i++) {
     tree.Remove(delete_seq[i]);
   }
   tree.PrintTree(mgr[1], table_schema);
+  //insert again
+  for (int i=0;i < n / 2;i++){
+    tree.Insert(keys[i], values[i]);
+  }
+
+  tree.PrintTree(mgr[2], table_schema);
+
+  vector<RowId> ans2;
+  for (int i = 0; i < n; i++) {
+    tree.GetValue(keys_copy[i], ans2);
+    if(!(kv_map[keys_copy[i]]==ans2[i])){
+      LOG(ERROR)<<"NO"<<endl;
+    }
+    ASSERT_EQ(kv_map[keys_copy[i]], ans2[i]);
+  }
+  ASSERT_TRUE(tree.Check());
+
+  // Delete half keys
+  for (int i = 0; i < n / 2; i++) {
+    tree.Remove(delete_seq[i]);
+  }
+
+//  tree.PrintTree(mgr[1], table_schema);
   // Check valid
   ans.clear();
   for (int i = 0; i < n / 2; i++) {

@@ -397,7 +397,7 @@ dberr_t ExecuteEngine::ExecuteCreateTable(pSyntaxNode ast, ExecuteContext *conte
 
   //处理主键
   Column* primary_column;
-  if(def->val_!=nullptr&&string(def->val_)=="primary keys"){
+  if(def!=nullptr&&def->val_!=nullptr&&string(def->val_)=="primary keys"){
     auto key_name = string(def->child_->val_);
     for(auto column : columns){
       if(column->GetName()==key_name){
@@ -515,6 +515,13 @@ dberr_t ExecuteEngine::ExecuteCreateIndex(pSyntaxNode ast, ExecuteContext *conte
   }
   IndexInfo* index_info;
   //TODO: Transaction txn
+#ifdef ENABLE_EXECUTE_DEBUG
+  cout<<"create on "<<table_name<<"Index Columns:\n========"<<endl;
+  for(auto i:index_keys_array){
+    cout<<i<<endl;
+  }
+  cout<<"=========\n";
+#endif
   auto exe_info = catalog_manager->CreateIndex(table_name,index_name,index_keys_array,nullptr,index_info,index_type);
   if(exe_info==DB_SUCCESS){
     cout<<"Successfully create index"<<endl;
