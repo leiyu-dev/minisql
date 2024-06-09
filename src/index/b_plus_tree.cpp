@@ -391,10 +391,12 @@ bool BPlusTree::Coalesce(LeafPage *&neighbor_node, LeafPage *&node, InternalPage
 // neighbor_node is to the left of node
 bool BPlusTree::Coalesce(InternalPage *&neighbor_node, InternalPage *&node, InternalPage *&parent, int index,
                          Txn *transaction) {
+#ifdef ENABLE_INDEX_DEBUG
   std::cout << "Internal Coalesce" << std::endl;
   std::cout << "neighbor_node: " << neighbor_node->GetPageId() << std::endl;
   std::cout << "node: " << node->GetPageId() << std::endl;
   std::cout << "index: " << index << std::endl;
+#endif
   sign_1 = 1;
   node->MoveAllTo(neighbor_node, parent->KeyAt(index + 1), buffer_pool_manager_);
   buffer_pool_manager_->UnpinPage(node->GetPageId(), false);
@@ -507,6 +509,12 @@ bool BPlusTree::AdjustRoot(BPlusTreePage *old_root_node) {
  */
 IndexIterator BPlusTree::Begin() {
   Page *page = FindLeafPage(nullptr, root_page_id_, true);
+  if(page == nullptr){
+#ifdef ENABLE_INDEX_DEBUG
+    LOG(INFO)<<"get a null begin iterator"<<endl;
+#endif
+    return End();
+  }
   return IndexIterator(page->GetPageId(), buffer_pool_manager_, 0);
 }
 
@@ -517,12 +525,11 @@ IndexIterator BPlusTree::Begin() {
  */
 IndexIterator BPlusTree::Begin(const GenericKey *key) {
   Page *page = FindLeafPage(key);
+  if(page == nullptr)return End();
   auto leaf_page = reinterpret_cast<LeafPage *>(page->GetData());
   int index = leaf_page->KeyIndex(key, processor_);
-  if (index == leaf_page->GetSize())
-    return End();
-  else
-    return IndexIterator(page->GetPageId(), buffer_pool_manager_, index);
+  if(index==leaf_page->GetSize())return End();
+  else return IndexIterator(page->GetPageId(), buffer_pool_manager_, index);
 }
 
 /*
