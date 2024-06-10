@@ -83,17 +83,42 @@ page_id_t InternalPage::Lookup(const GenericKey *key, const KeyManager &KM) {
   //   }
   // }
   // return ValueAt(left - 1);
+
+  // the case that key is at the most left child
   if (KM.CompareKeys(KeyAt(1), key) > 0) {
     return ValueAt(0);
   }
+  // the case that key is at the most right child
   if (KM.CompareKeys(KeyAt(GetSize() - 1), key) <= 0) {
     return ValueAt(GetSize() - 1);
   }
-  for (int i = 1; i < GetSize() - 1; i++) {
-    if (KM.CompareKeys(KeyAt(i), key) <= 0 && KM.CompareKeys(KeyAt(i + 1), key) > 0) {
-      return ValueAt(i);
+  // the case that key is in the middle
+  int left = 1;
+  int right = GetSize() - 2;
+  while (left <= right) {
+    int mid = (left + right) / 2;
+    if (KM.CompareKeys(KeyAt(mid), key) <= 0 && KM.CompareKeys(KeyAt(mid + 1), key) > 0) {
+      return ValueAt(mid);
+    } else if (KM.CompareKeys(KeyAt(mid), key) > 0) {
+      right = mid - 1;
+    } else {
+      left = mid + 1;
     }
   }
+
+  return ValueAt(left);
+
+  // if (KM.CompareKeys(KeyAt(1), key) > 0) {
+  //   return ValueAt(0);
+  // }
+  // if (KM.CompareKeys(KeyAt(GetSize() - 1), key) <= 0) {
+  //   return ValueAt(GetSize() - 1);
+  // }
+  // for (int i = 1; i < GetSize() - 1; i++) {
+  //   if (KM.CompareKeys(KeyAt(i), key) <= 0 && KM.CompareKeys(KeyAt(i + 1), key) > 0) {
+  //     return ValueAt(i);
+  //   }
+  // }
 }
 
 /*****************************************************************************
