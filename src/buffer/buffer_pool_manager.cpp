@@ -3,12 +3,17 @@
 #include "glog/logging.h"
 #include "page/bitmap_page.h"
 #include "common/config.h"
+#include "buffer/clock_replacer.h"
 static const char EMPTY_PAGE_DATA[PAGE_SIZE] = {0};
 
 BufferPoolManager::BufferPoolManager(size_t pool_size, DiskManager *disk_manager)
     : pool_size_(pool_size), disk_manager_(disk_manager) {
   pages_ = new Page[pool_size_];
+#ifdef USE_LRU_REPLACER
   replacer_ = new LRUReplacer(pool_size_);
+#else
+  replacer_ = new CLOCKReplacer(pool_size_);
+#endif
   for (size_t i = 0; i < pool_size_; i++) {
     free_list_.emplace_back(i);
   }

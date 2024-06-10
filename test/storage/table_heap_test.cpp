@@ -57,6 +57,16 @@ TEST(TableHeapTest, TableHeapSampleTest) {
     }
 //    std::cout<<row.GetFields().size()<<endl;
     /* do some things */
+    if(tot!=500){
+      for (auto iter = table_heap->Begin(nullptr); iter != table_heap->End(); iter++) {
+        auto row = *iter;
+        auto f500 = Field(TypeId::kTypeInt,500);
+        if(row.GetField(0)->CompareLessThan(f500)) {
+                cout << row.GetField(0)->toString() << endl;
+        }
+        else break;
+      }
+    }
   ASSERT_EQ(tot,500);
 
   ASSERT_EQ(row_nums, row_values.size());
@@ -83,4 +93,5 @@ TEST(TableHeapTest, TableHeapSampleTest) {
     delete row_kv.second;
   }
   ASSERT_EQ(tot_size, 0);
+  ASSERT_TRUE(bpm_->CheckAllUnpinned());
 }

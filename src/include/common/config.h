@@ -13,6 +13,8 @@
 //Not implemented yet. Cannot be commented!
 #define CREATE_INDEX_ON_UNIQUE
 
+//comment it to use clock replacer
+#define USE_LRU_REPLACER
 
 static constexpr int INVALID_PAGE_ID = -1;   // invalid page id
 static constexpr int INVALID_FRAME_ID = -1;  // invalid recovery id
@@ -38,5 +40,6 @@ using lsn_t = int32_t;
 using column_id_t = uint32_t;
 using index_id_t = uint32_t;
 using table_id_t = uint32_t;
+using table_internal_id_t = uint32_t;
 
 #endif  // MINISQL_CONFIG_H

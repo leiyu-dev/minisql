@@ -17,6 +17,7 @@ bool TablePage::InsertTuple(Row &row, Schema *schema, Txn *txn, LockManager *loc
     return false;
   }
   // Try to find a free slot to reuse.
+  // todo:record the max free space of deleted slot.
   uint32_t i;
   for (i = 0; i < GetTupleCount(); i++) {
     // If the slot is empty, i.e. its tuple has size 0,

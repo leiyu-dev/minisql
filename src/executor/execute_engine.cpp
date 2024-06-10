@@ -664,5 +664,9 @@ dberr_t ExecuteEngine::ExecuteQuit(pSyntaxNode ast, ExecuteContext *context) {
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteQuit" << std::endl;
 #endif
+ auto catalog_manager = dbs_[current_db_]->catalog_mgr_;
+ if(!catalog_manager->CheckAllUnpinned()){
+   LOG(ERROR)<<" PAGES UNPINNED!!!!!!!! "<<endl;
+ }
  return DB_QUIT;
 }
