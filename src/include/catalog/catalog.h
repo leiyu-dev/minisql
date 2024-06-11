@@ -96,6 +96,7 @@ class CatalogManager {
 
   dberr_t DropAllIndexes(const string &index_name, uint32_t& drop_tot);//drop indexes in all table
 
+  bool CheckAllUnpinned(){return buffer_pool_manager_->CheckAllUnpinned();}
  private:
   dberr_t DropTable(table_id_t table_id);
 

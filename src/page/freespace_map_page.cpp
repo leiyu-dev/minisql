@@ -9,18 +9,11 @@ void FreeSpaceMapPage::Init(page_id_t page_id, LogManager *log_mgr, Txn *txn){
   SetPairCount(0);
 }
 
-bool FreeSpaceMapPage::SetFreeSpace(table_internal_id_t internal_id, uint32_t free_space){
-  int pair_count = GetPairCount();
-  for(int i=0;i<pair_count;i++){
-
-  }
-}
-
-//return INVALID_PAGE_ID if it can't find a page
-uint32_t FreeSpaceMapPage::GetFreeSpace(){
-
-}
-
-page_id_t FreeSpaceMapPage::GetValidPage(){
-
+freespace_map_id_t FreeSpaceMapPage::NewPair(page_id_t page_id, uint32_t free_space){
+  auto pair_count = GetPairCount();
+  SetFreeSpace(pair_count,free_space);
+  SetSpacePageId(pair_count, page_id);
+  pair_count++;
+  SetPairCount(pair_count);
+  return pair_count;
 }

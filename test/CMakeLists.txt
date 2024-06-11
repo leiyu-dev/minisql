@@ -13,7 +13,8 @@ foreach (test_source ${MINISQL_TEST_SOURCES})
     MESSAGE(STATUS "Create test suit: ${test_name}")
 
     # Add the test target separately and as part of "make check-tests".
-    add_executable(${test_name} EXCLUDE_FROM_ALL ${test_source})
+    add_executable(${test_name} EXCLUDE_FROM_ALL ${test_source}
+            storage/freespace_map_test.cpp)
     target_link_libraries(${test_name} zSql glog gtest minisql_test_main)
     # target_link_libraries(${test_name} zSql glog gtest gtest_main)
 

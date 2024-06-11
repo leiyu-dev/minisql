@@ -40,6 +40,6 @@ using lsn_t = int32_t;
 using column_id_t = uint32_t;
 using index_id_t = uint32_t;
 using table_id_t = uint32_t;
-using table_internal_id_t = uint32_t;
+using freespace_map_id_t = uint32_t;
 
 #endif  // MINISQL_CONFIG_H
