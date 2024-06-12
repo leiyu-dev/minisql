@@ -7,6 +7,7 @@
 #include "page/table_page.h"
 #include "recovery/log_manager.h"
 #include "storage/table_iterator.h"
+#include "storage/freespace_map.h"
 
 class TableHeap {
   friend class TableIterator;
@@ -17,9 +18,9 @@ class TableHeap {
     return new TableHeap(buffer_pool_manager, schema, txn, log_manager, lock_manager);
   }
 
-  static TableHeap *Create(BufferPoolManager *buffer_pool_manager, page_id_t first_page_id, Schema *schema,
+  static TableHeap *Create(BufferPoolManager *buffer_pool_manager, page_id_t first_page_id,page_id_t freespace_map_page_id, Schema *schema,
                            LogManager *log_manager, LockManager *lock_manager) {
-    return new TableHeap(buffer_pool_manager, first_page_id, schema, log_manager, lock_manager);
+    return new TableHeap(buffer_pool_manager, first_page_id, freespace_map_page_id, schema, log_manager, lock_manager);
   }
 
     // 获取 TablePage
@@ -112,7 +113,7 @@ class TableHeap {
    * @return the id of the first page of this table
    */
   inline page_id_t GetFirstPageId() const { return first_page_id_; }
-
+  inline page_id_t GetFreeSpaceMapPageId()const {return freespace_map_->GetFirstPageId(); }
  private:
   /**
    * create table heap and initialize first page
@@ -126,21 +127,31 @@ class TableHeap {
 //    ASSERT(false, "Not implemented yet.");
       TablePage* true_page = reinterpret_cast<TablePage*>(buffer_pool_manager->NewPage(first_page_id_));//初始化新获得数据页
       true_page->Init(first_page_id_ ,INVALID_PAGE_ID,log_manager_, nullptr);
+
+      page_id_t freespace_map_page_id;
+      FreeSpaceMapPage* freespace_map_page = reinterpret_cast<FreeSpaceMapPage*>(buffer_pool_manager->NewPage(freespace_map_page_id));
+      freespace_map_ = new FreeSpaceMap(freespace_map_page->GetPageId(),buffer_pool_manager);
+      freespace_map_->SetNewPair(first_page_id_,true_page->GetFreeSpace());
+
       buffer_pool_manager->UnpinPage(first_page_id_,true);
+      buffer_pool_manager->UnpinPage(freespace_map_page->GetPageId(),true);
   };
 
-  explicit TableHeap(BufferPoolManager *buffer_pool_manager, page_id_t first_page_id, Schema *schema,
+  explicit TableHeap(BufferPoolManager *buffer_pool_manager, page_id_t first_page_id,page_id_t freespace_map_page_id, Schema *schema,
                      LogManager *log_manager, LockManager *lock_manager)
       : buffer_pool_manager_(buffer_pool_manager),
         first_page_id_(first_page_id),
         schema_(schema),
         log_manager_(log_manager),
-        lock_manager_(lock_manager) {}
+        lock_manager_(lock_manager) {
+    freespace_map_ = new FreeSpaceMap(freespace_map_page_id,buffer_pool_manager);
+  }
 
  private:
   BufferPoolManager *buffer_pool_manager_;
   page_id_t first_page_id_;
   Schema *schema_;
+  FreeSpaceMap* freespace_map_;
   [[maybe_unused]] LogManager *log_manager_;
   [[maybe_unused]] LockManager *lock_manager_;
 };

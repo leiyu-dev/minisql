@@ -95,7 +95,7 @@ CatalogManager::CatalogManager(BufferPoolManager *buffer_pool_manager, LockManag
           TableMetadata* table_meta;
           auto table_page = buffer_pool_manager->FetchPage(page_id);
           TableMetadata::DeserializeFrom(table_page->GetData(),table_meta);//new TableMetadata in it
-          auto table_heap =  TableHeap::Create(buffer_pool_manager,table_meta->GetFirstPageId(),table_meta->GetSchema(),
+          auto table_heap =  TableHeap::Create(buffer_pool_manager,table_meta->GetFirstPageId(),table_meta->GetFreeSpaceMapPageId(),table_meta->GetSchema(),
                                               log_manager,lock_manager);
           auto table_info = TableInfo::Create();
           table_info->Init(table_meta,table_heap);
@@ -141,7 +141,7 @@ dberr_t CatalogManager::CreateTable(const string &table_name, TableSchema *schem
   auto deep_copied_schema = Schema::DeepCopySchema(schema);
 //  initialize table info
   auto table_heap = TableHeap::Create(buffer_pool_manager_,deep_copied_schema,txn,log_manager_,lock_manager_);
-  auto table_meta = TableMetadata::Create(table_id,table_name,table_heap->GetFirstPageId(),deep_copied_schema);
+  auto table_meta = TableMetadata::Create(table_id,table_name,table_heap->GetFirstPageId(),table_heap->GetFreeSpaceMapPageId(),deep_copied_schema);
   table_info = TableInfo::Create();
   table_info->Init(table_meta,table_heap);
   tables_[table_id] = table_info;
@@ -409,7 +409,7 @@ dberr_t CatalogManager::LoadTable(const table_id_t table_id, const page_id_t pag
   TableMetadata* table_meta;
   auto table_page = buffer_pool_manager_->FetchPage(page_id);
   TableMetadata::DeserializeFrom(table_page->GetData(),table_meta);//new TableMetadata in it
-  auto table_heap =  TableHeap::Create(buffer_pool_manager_,table_meta->GetFirstPageId(),table_meta->GetSchema(),
+  auto table_heap =  TableHeap::Create(buffer_pool_manager_,table_meta->GetFirstPageId(),table_meta->GetFreeSpaceMapPageId(),table_meta->GetSchema(),
                                       log_manager_,lock_manager_);
   auto table_info = TableInfo::Create();
   table_info->Init(table_meta,table_heap);

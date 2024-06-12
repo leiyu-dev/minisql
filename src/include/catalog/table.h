@@ -22,7 +22,7 @@ class TableMetadata {
   /*
    * will create new table schema and owned by mem heap
    */
-  static TableMetadata *Create(table_id_t table_id, std::string table_name, page_id_t root_page_id,
+  static TableMetadata *Create(table_id_t table_id, std::string table_name, page_id_t root_page_id,page_id_t freespace_map_page_id,
                                TableSchema *schema);
 
   inline table_id_t GetTableId() const { return table_id_; }
@@ -31,18 +31,21 @@ class TableMetadata {
 
   inline page_id_t GetFirstPageId() const { return root_page_id_; }
 
+  inline page_id_t GetFreeSpaceMapPageId() const {return freespace_map_page_id_; }
+
   inline Schema *GetSchema() const { return schema_; }
 
  private:
   TableMetadata() = delete;
 
-  TableMetadata(table_id_t table_id, std::string table_name, page_id_t root_page_id, TableSchema *schema);
+  TableMetadata(table_id_t table_id, std::string table_name, page_id_t root_page_id,page_id_t freespace_map_page_id, TableSchema *schema);
 
  private:
   static constexpr uint32_t TABLE_METADATA_MAGIC_NUM = 344528;
   table_id_t table_id_;
   std::string table_name_;
   page_id_t root_page_id_;
+  page_id_t freespace_map_page_id_;
   Schema *schema_;
 };
 

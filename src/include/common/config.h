@@ -9,12 +9,14 @@
 //#define ENABLE_EXECUTE_DEBUG
 //#define ENABLE_SYNTAX_DEBUG
 //#define ENABLE_BUFFER_DEBUG
-
+//#define ENABLE_FREESPACE_MAP_DEBUG
 //Not implemented yet. Cannot be commented!
 #define CREATE_INDEX_ON_UNIQUE
 
 //comment it to use clock replacer
 #define USE_LRU_REPLACER
+
+#define USE_FREESPACE_MAP
 
 static constexpr int INVALID_PAGE_ID = -1;   // invalid page id
 static constexpr int INVALID_FRAME_ID = -1;  // invalid recovery id

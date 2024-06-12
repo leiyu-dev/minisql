@@ -18,6 +18,9 @@ uint32_t TableMetadata::SerializeTo(char *buf) const {
   // table heap root page id
   MACH_WRITE_TO(page_id_t, buf, root_page_id_);
   buf += 4;
+  // freespace map root page id
+  MACH_WRITE_TO(page_id_t, buf, freespace_map_page_id_);
+  buf += 4;
   // table schema
   buf += schema_->SerializeTo(buf);
   ASSERT(buf - p == ofs, "Unexpected serialize size.");
@@ -43,6 +46,9 @@ uint32_t TableMetadata::GetSerializedSize() const {
   ofs += table_name_.length();
   // table heap root page id
 //  MACH_WRITE_TO(page_id_t, buf, root_page_id_);
+  ofs += 4;
+  // freespace map root page id
+//  MACH_WRITE_TO(page_id_t, buf, freespace_map_page_id_);
   ofs += 4;
   // table schema
   ofs += schema_->GetSerializedSize();
@@ -74,11 +80,14 @@ uint32_t TableMetadata::DeserializeFrom(char *buf, TableMetadata *&table_meta) {
   // table heap root page id
   page_id_t root_page_id = MACH_READ_FROM(page_id_t, buf);
   buf += 4;
+  // table heap root page id
+  page_id_t freespace_map_page_id = MACH_READ_FROM(page_id_t, buf);
+  buf += 4;
   // table schema
   TableSchema *schema = nullptr;
   buf += TableSchema::DeserializeFrom(buf, schema);
   // allocate space for table metadata
-  table_meta = new TableMetadata(table_id, table_name, root_page_id, schema);
+  table_meta = new TableMetadata(table_id, table_name, root_page_id, freespace_map_page_id, schema);
   return buf - p;
 }
 
@@ -87,11 +96,11 @@ uint32_t TableMetadata::DeserializeFrom(char *buf, TableMetadata *&table_meta) {
  *
  * @param heap Memory heap passed by TableInfo
  */
-TableMetadata *TableMetadata::Create(table_id_t table_id, std::string table_name, page_id_t root_page_id,
+TableMetadata *TableMetadata::Create(table_id_t table_id, std::string table_name, page_id_t root_page_id,page_id_t freespace_map_page_id,
                                      TableSchema *schema) {
   // allocate space for table metadata
-  return new TableMetadata(table_id, table_name, root_page_id, schema);
+  return new TableMetadata(table_id, table_name, root_page_id,freespace_map_page_id, schema);
 }
 
-TableMetadata::TableMetadata(table_id_t table_id, std::string table_name, page_id_t root_page_id, TableSchema *schema)
-    : table_id_(table_id), table_name_(table_name), root_page_id_(root_page_id), schema_(schema) {}
+TableMetadata::TableMetadata(table_id_t table_id, std::string table_name, page_id_t root_page_id,page_id_t freespace_map_page_id,TableSchema *schema)
+    : table_id_(table_id), table_name_(table_name), root_page_id_(root_page_id), schema_(schema),freespace_map_page_id_(freespace_map_page_id) {}

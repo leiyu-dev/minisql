@@ -70,6 +70,11 @@ class TablePage : public Page {
       return *reinterpret_cast<uint32_t *>(GetData() + OFFSET_TUPLE_SIZE + SIZE_TUPLE * slot_num);
     }
 
+    uint32_t GetFreeSpace() {
+      //todo:return the max space of a consecutive block
+      return GetFreeSpacePointer() - SIZE_TABLE_PAGE_HEADER - SIZE_TUPLE * GetTupleCount() - SIZE_TUPLE;
+    }
+
    private:
   uint32_t GetFreeSpacePointer() { return *reinterpret_cast<uint32_t *>(GetData() + OFFSET_FREE_SPACE); }
 

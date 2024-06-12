@@ -6,14 +6,18 @@
 bool TableHeap::InsertTuple(Row &row, Txn *txn) {
     // 获取row对应的TablePage最大支持大小
     size_t max_size_row = TablePage::SIZE_MAX_ROW;
-
+    auto need_space = row.GetSerializedSize(schema_);
     // 如果单行数据超过此大小，返回false
-    if (row.GetSerializedSize(schema_) > max_size_row) {
+    if (need_space > max_size_row) {
         return false;
     }
 
     // 从Table中第一逻辑页开始遍历获得free page用于填入该row
+#ifdef USE_FREESPACE_MAP
+    page_id_t next_page_id = freespace_map_->GetBegin(need_space);
+#else
     page_id_t next_page_id = GetFirstPageId();
+#endif
     TablePage* true_page = nullptr;
 
     while (true) {
@@ -27,6 +31,9 @@ bool TableHeap::InsertTuple(Row &row, Txn *txn) {
             // 初始化新页
             new_page->Init(next_page_id, true_page ? true_page->GetPageId() : INVALID_PAGE_ID, log_manager_, txn);
             new_page->InsertTuple(row, schema_, txn, lock_manager_, log_manager_);
+#ifdef USE_FREESPACE_MAP
+            freespace_map_->SetNewPair(next_page_id,new_page->GetFreeSpace());
+#endif
             buffer_pool_manager_->UnpinPage(next_page_id, true);
 
             // 更新原数据页的next_page_id并unpin写回
@@ -45,13 +52,20 @@ bool TableHeap::InsertTuple(Row &row, Txn *txn) {
 
         // 尝试在当前页插入row
         if (true_page->InsertTuple(row, schema_, txn, lock_manager_, log_manager_)) {
+#ifdef USE_FREESPACE_MAP
+          freespace_map_->SetFreeSpace(next_page_id,true_page->GetFreeSpace());
+#endif
             buffer_pool_manager_->UnpinPage(next_page_id, true);
             return true;
         }
 
         // 当前页空间不足，移动到下一页
         buffer_pool_manager_->UnpinPage(next_page_id, false);
+#ifdef USE_FREESPACE_MAP
+        next_page_id = freespace_map_->GetNext(need_space);
+#else
         next_page_id = true_page->GetNextPageId();
+#endif
     }
 }
 
@@ -68,6 +82,9 @@ bool TableHeap::MarkDelete(const RowId &rid, Txn *txn) {
     page->WLatch();
     page->MarkDelete(rid, txn, lock_manager_, log_manager_);
     page->WUnlatch();
+#ifdef USE_FREESPACE_MAP
+    freespace_map_->SetFreeSpace(page->GetPageId(),page->GetFreeSpace());
+#endif
     buffer_pool_manager_->UnpinPage(page->GetTablePageId(), true);
     return true;
 }
@@ -103,6 +120,9 @@ bool TableHeap::UpdateTuple(Row &row, const RowId &rid, Txn *txn) {
     true_page->WUnlatch();
 
     // 根据更新结果进行处理
+#ifdef USE_FREESPACE_MAP
+    freespace_map_->SetFreeSpace(true_page->GetPageId(), true_page->GetFreeSpace());
+#endif
     buffer_pool_manager_->UnpinPage(true_page->GetTablePageId(), update_tuple_result == 0);
 
     switch (update_tuple_result) {
@@ -130,6 +150,9 @@ void TableHeap::ApplyDelete(const RowId &rid, Txn *txn) {
         page->WLatch(); // 获取写锁
         page->ApplyDelete(rid, txn, log_manager_);
         page->WUnlatch(); // 释放写锁
+#ifdef USE_FREESPACE_MAP
+        freespace_map_->SetFreeSpace(rid.GetPageId(), page->GetFreeSpace());
+#endif
         buffer_pool_manager_->UnpinPage(rid.GetPageId(), true);
     }
 }
@@ -143,6 +166,9 @@ void TableHeap::RollbackDelete(const RowId &rid, Txn *txn) {
     page->WLatch();
     page->RollbackDelete(rid, txn, log_manager_);
     page->WUnlatch();
+#ifdef USE_FREESPACE_MAP
+    freespace_map_->SetFreeSpace(rid.GetPageId(), page->GetFreeSpace());
+#endif
     buffer_pool_manager_->UnpinPage(page->GetTablePageId(), true);
 }
 
@@ -177,6 +203,9 @@ void TableHeap::DeleteTable(page_id_t page_id) {
         buffer_pool_manager_->UnpinPage(page_id, false);
         buffer_pool_manager_->DeletePage(page_id);
     } else {
+#ifdef USE_FREESPACE_MAP
+      delete freespace_map_;
+#endif
         DeleteTable(first_page_id_);
     }
 }

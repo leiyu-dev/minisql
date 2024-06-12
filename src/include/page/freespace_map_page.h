@@ -28,24 +28,23 @@
 class FreeSpaceMapPage : public Page {
  public:
   using mappair = std::pair<page_id_t,uint32_t>;
-
   freespace_map_id_t NewPair(page_id_t page_id, uint32_t free_space);
 
   void Init(page_id_t page_id, LogManager *log_mgr, Txn *txn);
-  page_id_t GetNextPageId(){ return *reinterpret_cast<uint32_t *>(GetData() + OFFSET_NEXT_PAGE_ID); }
-  void SetNextPageId(page_id_t next_page_id){ memcpy(GetData() + OFFSET_NEXT_PAGE_ID ,&next_page_id, sizeof(uint32_t)); }
-  uint32_t GetPairCount(){ return *reinterpret_cast<uint32_t *>(GetData() + OFFSET_PAIR_COUNT); }
-  void SetPairCount(uint32_t pair_count){ memcpy(GetData() + OFFSET_PAIR_COUNT ,&pair_count, sizeof(uint32_t)); }
-  page_id_t GetSpacePageId(freespace_map_id_t internal_id){
+  inline page_id_t GetNextPageId(){ return *reinterpret_cast<uint32_t *>(GetData() + OFFSET_NEXT_PAGE_ID); }
+  inline void SetNextPageId(page_id_t next_page_id){ memcpy(GetData() + OFFSET_NEXT_PAGE_ID ,&next_page_id, sizeof(uint32_t)); }
+  inline uint32_t GetPairCount(){ return *reinterpret_cast<uint32_t *>(GetData() + OFFSET_PAIR_COUNT); }
+  inline void SetPairCount(uint32_t pair_count){ memcpy(GetData() + OFFSET_PAIR_COUNT ,&pair_count, sizeof(uint32_t)); }
+  inline page_id_t GetSpacePageId(freespace_map_id_t internal_id){
     return *reinterpret_cast<page_id_t *>(GetData() + SIZE_FREESPACEMAP_PAGE_HEADER + SIZE_PAIR * internal_id);
   }
-  void SetSpacePageId(freespace_map_id_t internal_id,page_id_t page_id){
+  inline void SetSpacePageId(freespace_map_id_t internal_id,page_id_t page_id){
     memcpy(GetData() + SIZE_FREESPACEMAP_PAGE_HEADER + SIZE_PAIR * internal_id, &page_id, SIZE_PAGEID);
   }
-  uint32_t GetFreeSpace(freespace_map_id_t internal_id){
+  inline uint32_t GetFreeSpace(freespace_map_id_t internal_id){
     return *reinterpret_cast<page_id_t *>(GetData() + SIZE_FREESPACEMAP_PAGE_HEADER + SIZE_PAIR * internal_id + SIZE_PAGEID);
   }
-  void SetFreeSpace(freespace_map_id_t internal_id,uint32_t free_space){
+  inline void SetFreeSpace(freespace_map_id_t internal_id,uint32_t free_space){
     memcpy(GetData() + SIZE_FREESPACEMAP_PAGE_HEADER + SIZE_PAIR * internal_id + SIZE_PAGEID, &free_space, SIZE_FREESPACE);
   }
 

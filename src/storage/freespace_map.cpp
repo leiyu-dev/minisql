@@ -2,14 +2,16 @@
 // Created by cactus on 6/11/24.
 //
 #include "storage/freespace_map.h"
-
+#include "common/config.h"
 FreeSpaceMap::FreeSpaceMap(page_id_t first_map_page_id,BufferPoolManager* buffer_pool_manager): first_page_id(first_map_page_id),
             buffer_pool_manager_(buffer_pool_manager){
   auto page = buffer_pool_manager->FetchPage(first_map_page_id);
   auto freespace_map_page = reinterpret_cast<FreeSpaceMapPage*>(page);
   //todo:transaction
   freespace_map_page->Init(first_map_page_id, nullptr, nullptr);
+  MAX_PAIR_COUNT = freespace_map_page->SIZE_MAX_PAIR;
   buffer_pool_manager->UnpinPage(first_map_page_id,true);
+  last_page_id = INVALID_PAGE_ID;
 }
 
 void FreeSpaceMap::SetNewPair(page_id_t page_id,uint32_t free_space){
@@ -21,7 +23,7 @@ void FreeSpaceMap::SetNewPair(page_id_t page_id,uint32_t free_space){
   auto freespace_map_page = reinterpret_cast<FreeSpaceMapPage*>(page);
   while(true){
     auto pair_count = freespace_map_page->GetPairCount();
-    if(pair_count < freespace_map_page->SIZE_MAX_PAIR){
+    if(pair_count < freespace_map_page->SIZE_MAX_PAIR ){
       break;
     }
     page_id_t next_page_id = freespace_map_page->GetNextPageId();
@@ -36,13 +38,16 @@ void FreeSpaceMap::SetNewPair(page_id_t page_id,uint32_t free_space){
       auto new_freespace_map_page = reinterpret_cast<FreeSpaceMapPage*>(new_page);
       //todo:transaction
       new_freespace_map_page->Init(next_page_id, nullptr, nullptr);
+      freespace_map_page->SetNextPageId(next_page_id);
       buffer_pool_manager_->UnpinPage(next_page_id,true);
     }
     buffer_pool_manager_->UnpinPage(freespace_map_page->GetPageId(),false);
     page = buffer_pool_manager_->FetchPage(next_page_id);
     freespace_map_page = reinterpret_cast<FreeSpaceMapPage*>(page);
   }
+  buffer_pool_manager_->UnpinPage(freespace_map_page->GetPageId(),false);
   freespace_map_page->NewPair(page_id, free_space);
+  last_page_id = page_id;
 }
 
 page_id_t FreeSpaceMap::GetBegin(uint32_t need_space){
@@ -51,6 +56,7 @@ page_id_t FreeSpaceMap::GetBegin(uint32_t need_space){
     LOG(ERROR)<<"out of memory"<<std::endl;
     return INVALID_PAGE_ID;
   }
+  internal_index=-1;page_index=-1;
   auto freespace_map_page = reinterpret_cast<FreeSpaceMapPage*>(page);
   freespace_map_id_t internal_id = 0;
   while(true){
@@ -67,17 +73,14 @@ page_id_t FreeSpaceMap::GetBegin(uint32_t need_space){
     internal_id = 0;
     page_id_t next_page_id = freespace_map_page->GetNextPageId();
     if(next_page_id == INVALID_PAGE_ID){
-      buffer_pool_manager_->NewPage(next_page_id);
-      if(next_page_id == INVALID_PAGE_ID) {
-        LOG(ERROR) << "out of memory" << std::endl;
-        return INVALID_PAGE_ID;
-      }
-      buffer_pool_manager_->UnpinPage(next_page_id,false);
-      auto new_page = buffer_pool_manager_->FetchPage(next_page_id);
-      auto new_freespace_map_page = reinterpret_cast<FreeSpaceMapPage*>(new_page);
-      //todo:transaction
-      new_freespace_map_page->Init(next_page_id, nullptr, nullptr);
-      buffer_pool_manager_->UnpinPage(next_page_id,true);
+#ifdef ENABLE_FREESPACE_MAP_DEBUG
+      LOG(WARNING) << "Cannot find the page " <<last_page_id<<" "<< internal_index<<' '<< pair_count<< std::endl;
+#endif
+      buffer_pool_manager_->UnpinPage(freespace_map_page->GetPageId(),false);
+      if(internal_index == pair_count-1 )return INVALID_PAGE_ID;
+      internal_index = pair_count-1;
+      page_index = freespace_map_page->GetPageId();
+      return last_page_id;
     }
     buffer_pool_manager_->UnpinPage(freespace_map_page->GetPageId(),false);
     page = buffer_pool_manager_->FetchPage(next_page_id);
@@ -85,6 +88,7 @@ page_id_t FreeSpaceMap::GetBegin(uint32_t need_space){
   }
   internal_index = internal_id;
   page_index = freespace_map_page->GetPageId();
+  buffer_pool_manager_->UnpinPage(freespace_map_page->GetPageId(),false);
   return freespace_map_page->GetSpacePageId(internal_index);
 }
 
@@ -110,17 +114,14 @@ page_id_t FreeSpaceMap::GetNext(uint32_t need_space) {
     internal_id = 0;
     page_id_t next_page_id = freespace_map_page->GetNextPageId();
     if(next_page_id == INVALID_PAGE_ID){
-      buffer_pool_manager_->NewPage(next_page_id);
-      if(next_page_id == INVALID_PAGE_ID) {
-        LOG(ERROR) << "out of memory" << std::endl;
-        return INVALID_PAGE_ID;
-      }
-      buffer_pool_manager_->UnpinPage(next_page_id,false);
-      auto new_page = buffer_pool_manager_->FetchPage(next_page_id);
-      auto new_freespace_map_page = reinterpret_cast<FreeSpaceMapPage*>(new_page);
-      //todo:transaction
-      new_freespace_map_page->Init(next_page_id, nullptr, nullptr);
-      buffer_pool_manager_->UnpinPage(next_page_id,true);
+#ifdef ENABLE_FREESPACE_MAP_DEBUG
+      LOG(WARNING) << "Cannot find the page " <<last_page_id<<" "<< internal_index<<' '<< pair_count<<std::endl;
+#endif
+      buffer_pool_manager_->UnpinPage(freespace_map_page->GetPageId(),false);
+      if(internal_index == pair_count-1 )return INVALID_PAGE_ID;
+      internal_index = pair_count-1;
+      page_index = freespace_map_page->GetPageId();
+      return last_page_id;
     }
     buffer_pool_manager_->UnpinPage(freespace_map_page->GetPageId(),false);
     page = buffer_pool_manager_->FetchPage(next_page_id);
@@ -128,6 +129,7 @@ page_id_t FreeSpaceMap::GetNext(uint32_t need_space) {
   }
   internal_index = internal_id;
   page_index = freespace_map_page->GetPageId();
+  buffer_pool_manager_->UnpinPage(freespace_map_page->GetPageId(),false);
   return freespace_map_page->GetSpacePageId(internal_index);
 }
 
@@ -154,23 +156,19 @@ page_id_t FreeSpaceMap::SetFreeSpace(page_id_t page_id,uint32_t free_space){
     internal_id = 0;
     page_id_t next_page_id = freespace_map_page->GetNextPageId();
     if(next_page_id == INVALID_PAGE_ID){
-      buffer_pool_manager_->NewPage(next_page_id);
-      if(next_page_id == INVALID_PAGE_ID) {
-        LOG(ERROR) << "out of memory" << std::endl;
-        return INVALID_PAGE_ID;
-      }
-      buffer_pool_manager_->UnpinPage(next_page_id,false);
-      auto new_page = buffer_pool_manager_->FetchPage(next_page_id);
-      auto new_freespace_map_page = reinterpret_cast<FreeSpaceMapPage*>(new_page);
-      //todo:transaction
-      new_freespace_map_page->Init(next_page_id, nullptr, nullptr);
-      buffer_pool_manager_->UnpinPage(next_page_id,true);
+//#ifdef ENABLE_FREESPACE_MAP_DEBUG
+      LOG(ERROR) << "Cannot find the page" << std::endl;
+//#endif
+      buffer_pool_manager_->UnpinPage(freespace_map_page->GetPageId(),false);
+      return INVALID_PAGE_ID;
     }
     buffer_pool_manager_->UnpinPage(freespace_map_page->GetPageId(),false);
     page = buffer_pool_manager_->FetchPage(next_page_id);
     freespace_map_page = reinterpret_cast<FreeSpaceMapPage*>(page);
   }
   if(!found)return INVALID_PAGE_ID;
+  auto freespace_map_page_id = freespace_map_page->GetPageId();
   freespace_map_page->SetFreeSpace(internal_id,free_space);
-  return freespace_map_page->GetPageId();
+  buffer_pool_manager_->UnpinPage(freespace_map_page_id,true);
+  return freespace_map_page_id;
 }
