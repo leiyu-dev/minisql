@@ -99,9 +99,6 @@ TEST(FreeSpaceMapTest, FreeSpaceMapSampleTest) {
     }
     if(j==pair_num)break;
     if(get_page_id!=space_map[ans_index].first){
-      cout<<"OHGHH!"<<freespace_map->GetFreeSpace(freespace_map->page_index,freespace_map->internal_index)<<endl<<
-          freespace_map->page_index*freespace_map->MAX_PAIR_COUNT + freespace_map->internal_index+1<<endl<<
-          j<<endl;
       ASSERT_EQ(get_page_id,space_map[ans_index].first);
     }
     get_page_id = freespace_map->GetNext(need_space);

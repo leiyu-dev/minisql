@@ -32,8 +32,8 @@ class FreeSpaceMap{
 //      if(freespace_map_page->GetSpacePageId(i)==page_id)
 //    return freespace_map_page->GetFreeSpace(i);
   }
-// private:
- public:
+ private:
+// public:
   page_id_t first_page_id;
   page_id_t last_page_id;
   BufferPoolManager* buffer_pool_manager_;
