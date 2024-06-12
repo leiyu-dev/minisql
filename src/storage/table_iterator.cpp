@@ -30,7 +30,10 @@ bool TableIterator::operator==(const TableIterator &itr) const {
 }
 
 bool TableIterator::operator!=(const TableIterator &itr) const {
-  return !(this->rid_ == itr.rid_ && this->page_ == itr.page_);
+    if (*this== itr)
+        return false;
+    else
+        return  true;
 }
 
 const Row &TableIterator::operator*() {
