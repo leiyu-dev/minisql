@@ -1,4 +1,8 @@
 # MiniSQL
+# Project 2 of Class Database System
+Implemented by three students
+
+
 
 
 本框架参考CMU-15445 BusTub框架进行改写，在保留了缓冲池、索引、记录模块的一些核心设计理念的基础上，做了一些修改和扩展，使之兼容于原MiniSQL实验指导的要求。
